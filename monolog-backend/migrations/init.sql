@@ -73,3 +73,4 @@ CREATE INDEX IF NOT EXISTS idx_comments_is_approved ON comments(is_approved);
 CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON reactions(post_id);
 CREATE INDEX IF NOT EXISTS idx_views_post_id ON views(post_id);
 CREATE INDEX IF NOT EXISTS idx_views_ip_post ON views(post_id, ip_address);
+CREATE INDEX IF NOT EXISTS idx_views_recent  ON views(post_id, ip_address, viewed_at DESC);

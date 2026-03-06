@@ -14,20 +14,22 @@ router.post('/view/:post_id', async (req, res) => {
   const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
 
   try {
-    const recentView = await query(
-      "SELECT id FROM views WHERE post_id = $1 AND ip_address = $2 AND viewed_at > NOW() - INTERVAL '24 hours'",
+    const result = await query(
+      `WITH attempt AS (
+         INSERT INTO views (post_id, ip_address)
+         SELECT $1::uuid, $2::text
+         WHERE NOT EXISTS (
+           SELECT 1 FROM views
+           WHERE  post_id    = $1
+             AND  ip_address = $2
+             AND  viewed_at  > NOW() - INTERVAL '24 hours'
+         )
+         RETURNING id
+       )
+       SELECT COUNT(*) AS views FROM views WHERE post_id = $1`,
       [post_id, ip]
     );
-
-    if (recentView.rows.length === 0) {
-      await query(
-        'INSERT INTO views (post_id, ip_address) VALUES ($1, $2)',
-        [post_id, ip]
-      );
-    }
-
-    const totalViews = await query('SELECT COUNT(*) FROM views WHERE post_id = $1', [post_id]);
-    res.json({ views: totalViews.rows[0].count });
+    res.json({ views: result.rows[0].views });
   } catch (err) {
     console.error('Error recording view:', err);
     res.status(500).json({ message: 'Error recording view' });

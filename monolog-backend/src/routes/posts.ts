@@ -17,14 +17,25 @@ const createPostSchema = z.object({
 const updatePostSchema = createPostSchema.partial();
 
 // Public: Get all published posts with counts
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     const result = await query(`
       SELECT
         p.id, p.title, p.slug, p.excerpt, p.category, p.published_at,
-        (SELECT COUNT(*) FROM views v WHERE v.post_id = p.id) as views,
-        (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id AND c.is_approved = TRUE) as comments
+        COALESCE(v.views,    0)::int AS views,
+        COALESCE(c.comments, 0)::int AS comments
       FROM posts p
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) AS views
+        FROM   views
+        GROUP  BY post_id
+      ) v ON v.post_id = p.id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) AS comments
+        FROM   comments
+        WHERE  is_approved = TRUE
+        GROUP  BY post_id
+      ) c ON c.post_id = p.id
       WHERE p.is_published = TRUE
       ORDER BY p.published_at DESC
     `);
