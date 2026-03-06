@@ -4,6 +4,7 @@ import { CommentSection } from "@/components/comment-section"
 import { Reactions }       from "@/components/reactions"
 import { api }             from "@/lib/api"
 import { ArrowLeft, BookOpen, Calendar, Clock, Eye, User } from "lucide-react"
+import DOMPurify from "dompurify"
 import Link    from "next/link"
 import * as React from "react"
 import { useEffect, useState } from "react"
@@ -70,7 +71,13 @@ export default function PostPage({
     async function load() {
       try {
         const data = await api.posts.getOne(id)
-        setPost(data)
+        // Sanitize HTML content to prevent XSS from injected markup
+        const sanitized = DOMPurify.sanitize(data.content ?? '', {
+          USE_PROFILES: { html: true },
+          FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
+          FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+        })
+        setPost({ ...data, content: sanitized })
         const analytics = await api.analytics.recordView(data.id)
         setViews(analytics.views)
       } catch (e: any) {

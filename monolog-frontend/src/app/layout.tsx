@@ -3,12 +3,24 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { NavigationRail } from "@/components/navigation-rail";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+// Explicitly request only the weights used in the UI.
+// next/font downloads and self-hosts these — no third-party font request at runtime.
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",          // prevents invisible text during font load (FOIT → FOUT)
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "MonoLog – Personal Insight Blog",
   description: "A minimal, high-performance personal publishing platform for distraction-free reading.",
 };
+
+// Resolve the API origin at build time so we can preconnect to it.
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL
+  ? new URL(process.env.NEXT_PUBLIC_API_URL).origin
+  : null;
 
 export default function RootLayout({
   children,
@@ -17,6 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Warm up the TCP+TLS connection to the backend before the first API call */}
+        {apiOrigin && <link rel="preconnect" href={apiOrigin} />}
+      </head>
       <body
         className={`${inter.variable} font-sans antialiased bg-surface text-surface-on selection:bg-primary/20`}
         suppressHydrationWarning
