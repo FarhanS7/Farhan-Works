@@ -3,11 +3,11 @@
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import {
-  BookOpen, Home, LogOut, Menu, Moon, Search, Settings, Sun, User, X,
+    BookOpen, Home, LogOut, Menu, Moon, Search, Settings, Sun, User, X,
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 const navLinks = [
   { label: "Home",  href: "/" },
@@ -82,10 +82,10 @@ export function NavigationRail() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-blue group-hover:scale-105 transition-transform">
-              <BookOpen size={18} className="text-white" />
+            <div className="w-10 h-10 rounded-xl bg-black dark:bg-white flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+              <BookOpen size={20} className="text-white dark:text-black" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-surface-on group-hover:text-primary transition-colors">
+            <span className="text-xl font-bold tracking-tighter text-black dark:text-white group-hover:opacity-70 transition-opacity uppercase">
               MonoLog
             </span>
           </Link>
@@ -99,13 +99,13 @@ export function NavigationRail() {
                 className={cn(
                   "relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive(href)
-                    ? "text-primary bg-primary/10"
-                    : "text-text-muted hover:text-surface-on hover:bg-surface-muted"
+                    ? "text-black dark:text-white"
+                    : "text-text-muted hover:text-black dark:hover:text-white hover:bg-surface-muted"
                 )}
               >
                 {label}
                 {isActive(href) && (
-                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-black dark:bg-white" />
                 )}
               </Link>
             ))}
@@ -151,7 +151,7 @@ export function NavigationRail() {
             ) : (
               <Link
                 href="/login"
-                className="ml-2 px-4 py-1.5 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary-hover transition-colors shadow-blue"
+                className="ml-2 px-5 py-2 rounded-full text-sm font-bold bg-black text-white dark:bg-white dark:text-black hover:opacity-80 transition-all"
               >
                 Sign In
               </Link>

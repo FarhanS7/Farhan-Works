@@ -1,4 +1,4 @@
-import { Clock, Eye, MessageCircle, ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, Clock, Eye, MessageCircle } from "lucide-react"
 import Link from "next/link"
 
 interface PostCardProps {
@@ -14,16 +14,16 @@ interface PostCardProps {
 
 /* ── Category colour mapping ──────────────────────────────── */
 const categoryColour: Record<string, string> = {
-  technology: "bg-blue-50  border-blue-200  text-blue-700  dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300",
-  ideas:      "bg-violet-50 border-violet-200 text-violet-700 dark:bg-violet-900/20 dark:border-violet-800 dark:text-violet-300",
-  design:     "bg-pink-50   border-pink-200  text-pink-700  dark:bg-pink-900/20  dark:border-pink-800  dark:text-pink-300",
-  code:       "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300",
+  technology: "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
+  ideas:      "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
+  design:     "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
+  code:       "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
 }
 
 function getCategoryClasses(category: string) {
   return (
     categoryColour[category.toLowerCase()] ??
-    "bg-primary/8 border-primary/20 text-primary dark:bg-primary/10"
+    "bg-black/5 border-black/10 text-black dark:bg-white/10 dark:border-white/20 dark:text-white"
   )
 }
 
@@ -39,10 +39,7 @@ export function PostCard({
 }: PostCardProps) {
   return (
     <Link href={`/post/${id}`} className="group block h-full">
-      <article className="card-hover flex flex-col h-full bg-white dark:bg-[#0F172A] rounded-2xl border border-border hover:border-primary/30 shadow-level-1 overflow-hidden transition-all duration-250">
-
-        {/* Top accent bar */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-primary via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <article className="card-hover flex flex-col h-full bg-white dark:bg-surface-muted rounded-2xl border border-border hover:border-black dark:hover:border-white shadow-sm overflow-hidden transition-all duration-300">
 
         <div className="flex flex-col flex-1 p-5">
 

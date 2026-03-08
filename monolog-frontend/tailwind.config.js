@@ -64,7 +64,6 @@ export default {
         'level-1': 'var(--shadow-sm)',
         'level-2': 'var(--shadow-md)',
         'level-3': 'var(--shadow-lg)',
-        'blue':    'var(--shadow-blue)',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
