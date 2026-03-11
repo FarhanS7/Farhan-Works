@@ -1,7 +1,9 @@
+import { NavigationRail } from "@/components/navigation-rail";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { NavigationRail } from "@/components/navigation-rail";
+
+import { MainContent } from "@/components/main-content";
 
 // Explicitly request only the weights used in the UI.
 // next/font downloads and self-hosts these — no third-party font request at runtime.
@@ -34,16 +36,16 @@ export default function RootLayout({
         {apiOrigin && <link rel="preconnect" href={apiOrigin} />}
       </head>
       <body
-        className={`${inter.variable} font-sans antialiased bg-surface text-surface-on selection:bg-primary/20`}
+        className={`${inter.variable} font-sans antialiased bg-surface text-surface-on selection:bg-primary selection:text-surface`}
         suppressHydrationWarning
       >
         {/* Top navbar */}
         <NavigationRail />
 
-        {/* Page content – padded below fixed navbar */}
-        <main className="min-h-screen pt-16">
+        {/* Page content – conditional padding inside wrapper */}
+        <MainContent>
           {children}
-        </main>
+        </MainContent>
       </body>
     </html>
   );

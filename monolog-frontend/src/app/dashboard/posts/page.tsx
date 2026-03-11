@@ -70,7 +70,7 @@ export default function PostManagementPage() {
 
       {/* Content */}
       {error ? (
-        <div className="p-8 text-center bg-error/8 border border-error/20 text-error rounded-2xl font-medium">
+        <div className="p-8 text-center bg-error text-surface rounded-2xl font-medium shadow-md">
           {error}
         </div>
       ) : loading ? (
@@ -80,11 +80,11 @@ export default function PostManagementPage() {
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <div key={post.id} className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 overflow-hidden group hover:border-primary/30 transition-all">
+            <div key={post.id} className="rounded-2xl border border-border bg-surface shadow-level-1 overflow-hidden group hover:border-surface-on transition-all">
               <div className="flex flex-col md:flex-row md:items-center justify-between p-5 gap-4">
                 {/* Post info */}
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-surface-muted text-primary flex items-center justify-center shrink-0">
                     <FileText size={18} />
                   </div>
                   <div>
@@ -94,7 +94,7 @@ export default function PostManagementPage() {
                     <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
                       <span className={
                         post.is_published
-                          ? "px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                          ? "px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold border border-emerald-500 uppercase tracking-widest"
                           : "px-2 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border"
                       }>
                         {post.is_published ? 'Published' : 'Draft'}
@@ -118,14 +118,14 @@ export default function PostManagementPage() {
                   </Link>
                   <Link
                     href={`/dashboard/posts/${post.id}`}
-                    className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-all"
+                    className="p-2 rounded-lg text-primary hover:bg-surface-muted transition-all"
                     title="Edit Content"
                   >
                     <Edit size={16} />
                   </Link>
                   <button
                     onClick={() => handleDelete(post.id)}
-                    className="p-2 rounded-lg text-error hover:bg-error/10 transition-all"
+                    className="p-2 rounded-lg text-error hover:bg-surface-muted transition-all"
                     title="Delete Forever"
                   >
                     <Trash2 size={16} />

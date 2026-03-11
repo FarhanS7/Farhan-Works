@@ -10,9 +10,9 @@ interface ReactionsProps {
 }
 
 const TYPES = [
-  { key: "like",  Icon: ThumbsUp,  label: "Like",  active: "text-blue-600  bg-blue-50  dark:bg-blue-900/20  border-blue-200  dark:border-blue-800"  },
-  { key: "heart", Icon: Heart,     label: "Love",  active: "text-rose-600  bg-rose-50  dark:bg-rose-900/20  border-rose-200  dark:border-rose-800"  },
-  { key: "clap",  Icon: HandMetal, label: "Clap",  active: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800" },
+  { key: "like",  Icon: ThumbsUp,  label: "Like",  active: "text-blue-600  bg-blue-50  border-blue-200"  },
+  { key: "heart", Icon: Heart,     label: "Love",  active: "text-rose-600  bg-rose-50  border-rose-200"  },
+  { key: "clap",  Icon: HandMetal, label: "Clap",  active: "text-amber-600 bg-amber-50 border-amber-200" },
 ]
 
 export function Reactions({ postId }: ReactionsProps) {
@@ -67,7 +67,7 @@ export function Reactions({ postId }: ReactionsProps) {
               "flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200",
               isVoted
                 ? active
-                : "border-border bg-white dark:bg-[#0F172A] text-text-muted hover:border-primary/30 hover:text-primary hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                : "border-border bg-surface text-text-muted hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed"
             )}
           >
             <Icon size={16} className={cn(isVoted && "fill-current opacity-80")} />

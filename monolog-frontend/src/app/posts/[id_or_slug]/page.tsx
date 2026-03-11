@@ -1,11 +1,11 @@
 "use client"
 
 import { CommentSection } from "@/components/comment-section"
-import { Reactions }       from "@/components/reactions"
-import { api }             from "@/lib/api"
-import { ArrowLeft, BookOpen, Calendar, Clock, Eye, User } from "lucide-react"
+import { Reactions } from "@/components/reactions"
+import { api } from "@/lib/api"
 import DOMPurify from "dompurify"
-import Link    from "next/link"
+import { ArrowLeft, BookOpen, Calendar, Clock, Eye, User } from "lucide-react"
+import Link from "next/link"
 import * as React from "react"
 import { useEffect, useState } from "react"
 
@@ -24,7 +24,7 @@ function ReadingProgress() {
   }, [])
 
   return (
-    <div className="fixed top-16 inset-x-0 h-0.5 z-40 bg-border/40">
+    <div className="fixed top-16 inset-x-0 h-0.5 z-40 bg-border">
       <div
         className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-100"
         style={{ width: pct + "%" }}
@@ -58,19 +58,19 @@ function PostSkeleton() {
 export default function PostPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id_or_slug: string }>
 }) {
   const [post,    setPost]    = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState<string | null>(null)
   const [views,   setViews]   = useState<number | string>("…")
 
-  const { id } = React.use(params)
+  const { id_or_slug } = React.use(params)
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await api.posts.getOne(id)
+        const data = await api.posts.getOne(id_or_slug)
         // Sanitize HTML content to prevent XSS from injected markup
         const sanitized = DOMPurify.sanitize(data.content ?? '', {
           USE_PROFILES: { html: true },
@@ -87,13 +87,13 @@ export default function PostPage({
       }
     }
     load()
-  }, [id])
+  }, [id_or_slug])
 
   if (loading) return <PostSkeleton />
 
   if (error) return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-24 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-error/10 text-error flex items-center justify-center mx-auto mb-4">
+      <div className="w-16 h-16 rounded-2xl bg-error text-surface flex items-center justify-center mx-auto mb-4">
         <BookOpen size={28} />
       </div>
       <h1 className="text-2xl font-bold text-surface-on mb-2">Post Not Found</h1>
@@ -117,7 +117,7 @@ export default function PostPage({
       <ReadingProgress />
 
       {/* ── Article header ────────────────────────────── */}
-      <header className="border-b border-border bg-white dark:bg-[#0B1120]">
+      <header className="border-b border-border bg-surface">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 space-y-6">
 
           {/* Back link */}
@@ -130,7 +130,7 @@ export default function PostPage({
 
           {/* Category */}
           {post.category && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-surface-muted text-primary border border-border">
               {post.category}
             </span>
           )}
@@ -162,7 +162,7 @@ export default function PostPage({
       </header>
 
       {/* ── Article body ──────────────────────────────── */}
-      <div className="bg-white dark:bg-[#0B1120]">
+      <div className="bg-surface">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
           <article
             className="article-content"
@@ -172,7 +172,7 @@ export default function PostPage({
       </div>
 
       {/* ── Reactions + comments ──────────────────────── */}
-      <div className="border-t border-border bg-surface-alt dark:bg-[#0F172A]">
+      <div className="border-t border-border bg-surface-muted">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-12">
 
           {/* Reactions */}
@@ -192,7 +192,7 @@ export default function PostPage({
       </div>
 
       {/* ── Next article nudge ────────────────────────── */}
-      <div className="border-t border-border bg-white dark:bg-[#0B1120]">
+      <div className="border-t border-border bg-surface">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-text-muted text-sm">Enjoyed this article?</p>
           <Link

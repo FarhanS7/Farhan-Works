@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock, Eye, MessageCircle } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 
 interface PostCardProps {
@@ -14,16 +14,16 @@ interface PostCardProps {
 
 /* ── Category colour mapping ──────────────────────────────── */
 const categoryColour: Record<string, string> = {
-  technology: "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
-  ideas:      "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
-  design:     "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
-  code:       "bg-black/5  border-black/10  text-black  dark:bg-white/10 dark:border-white/20 dark:text-white",
+  technology: "bg-surface-muted border-primary text-primary shadow-sm",
+  ideas:      "bg-surface-muted border-sky-500 text-sky-600 shadow-sm",
+  design:     "bg-surface-muted border-rose-500 text-rose-600 shadow-sm",
+  code:       "bg-surface-muted border-slate-700 text-slate-800 shadow-sm",
 }
 
 function getCategoryClasses(category: string) {
   return (
     categoryColour[category.toLowerCase()] ??
-    "bg-black/5 border-black/10 text-black dark:bg-white/10 dark:border-white/20 dark:text-white"
+    "bg-surface-muted border-border text-surface-on"
   )
 }
 
@@ -39,52 +39,48 @@ export function PostCard({
 }: PostCardProps) {
   return (
     <Link href={`/post/${id}`} className="group block h-full">
-      <article className="card-hover flex flex-col h-full bg-white dark:bg-surface-muted rounded-2xl border border-border hover:border-black dark:hover:border-white shadow-sm overflow-hidden transition-all duration-300">
-
-        <div className="flex flex-col flex-1 p-5">
-
-          {/* Header row: category + date */}
-          <div className="flex items-center justify-between mb-3">
+      <article className="bento-card card-hover flex flex-col h-full bg-surface hover:bg-surface-muted p-6 sm:p-8">
+        
+        {/* Category Prefix */}
+        <div className="flex flex-col mb-6">
+          <span className="text-[10px] font-bold text-text-faint tracking-[0.2em] mb-1 opacity-60 uppercase">
+            // {category}
+          </span>
+          <div className="flex items-center justify-between">
             <span
               className={
-                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border " +
+                "inline-flex items-center px-3 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest " +
                 getCategoryClasses(category)
               }
             >
               {category}
             </span>
-            <span className="flex items-center gap-1 text-xs text-text-faint">
-              <Clock size={11} />
+          </div>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-xl sm:text-2xl font-black text-surface-on tracking-tighter leading-[1.1] mb-4 line-clamp-2">
+          {title}
+        </h2>
+
+        {/* Excerpt */}
+        <p className="flex-1 text-sm text-text-muted leading-relaxed line-clamp-3 mb-8">
+          {excerpt}
+        </p>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-6 border-t border-border mt-auto">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-bold text-text-faint uppercase tracking-wider">
               {date}
             </span>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-base font-bold text-surface-on group-hover:text-primary transition-colors leading-snug line-clamp-2 mb-2">
-            {title}
-          </h2>
-
-          {/* Excerpt */}
-          <p className="flex-1 text-sm text-text-muted leading-relaxed line-clamp-3 mb-4">
-            {excerpt}
-          </p>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-border mt-auto">
-            <div className="flex items-center gap-3 text-xs text-text-faint">
-              <span className="flex items-center gap-1">
-                <Eye size={12} />
-                {views.toLocaleString()}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageCircle size={12} />
-                {comments}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] font-black text-surface-on uppercase tracking-tighter">
               {readTime}
-              <ArrowUpRight size={13} />
-            </div>
+            </span>
+          </div>
+          
+          <div className="circle-btn bg-surface-on text-surface group-hover:scale-110 shadow-lg">
+            <ArrowUpRight size={18} strokeWidth={3} />
           </div>
         </div>
       </article>

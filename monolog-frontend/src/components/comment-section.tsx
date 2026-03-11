@@ -60,7 +60,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
       </div>
 
       {/* Comment form */}
-      <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] overflow-hidden">
+      <div className="rounded-2xl border border-border bg-surface overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <p className="text-sm font-semibold text-surface-on">Leave a comment</p>
           <p className="text-xs text-text-muted mt-0.5">Comments are moderated before appearing.</p>
@@ -73,7 +73,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
             placeholder="Share your thoughts…"
             value={body}
             onChange={e => setBody(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"
           />
 
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -83,7 +83,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
               placeholder="Your name (optional)"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface-alt text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
             />
 
             {/* Submit */}
@@ -103,8 +103,8 @@ export function CommentSection({ postId }: CommentSectionProps) {
               className={cn(
                 "text-sm px-4 py-3 rounded-xl border",
                 message.ok
-                  ? "bg-primary/8 border-primary/20 text-primary"
-                  : "bg-error/8 border-error/20 text-error"
+                  ? "bg-surface-muted border-primary text-primary"
+                  : "bg-error text-surface"
               )}
             >
               {message.text}
@@ -127,11 +127,11 @@ export function CommentSection({ postId }: CommentSectionProps) {
           comments.map(c => (
             <div
               key={c.id}
-              className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] p-5 space-y-3 hover:border-primary/20 transition-colors"
+              className="rounded-2xl border border-border bg-surface p-5 space-y-3 hover:border-surface-on transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center text-primary">
                     <User size={15} />
                   </div>
                   <span className="text-sm font-bold text-surface-on">{c.author_name}</span>

@@ -29,7 +29,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-surface-alt dark:bg-[#0B1120]">
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-surface">
 
       {/* Card */}
       <div className="w-full max-w-sm">
@@ -37,30 +37,30 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8 space-y-3">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-blue mx-auto">
-              <BookOpen size={20} className="text-white" />
+            <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center shadow-lg mx-auto group-hover:scale-105 transition-transform">
+              <BookOpen size={24} className="text-white" />
             </div>
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-surface-on">Admin Access</h1>
-            <p className="text-sm text-text-muted mt-1">Sign in to manage MonoLog</p>
+            <h1 className="text-2xl font-black text-black uppercase tracking-tighter">Admin Access</h1>
+            <p className="text-[10px] font-bold text-text-faint uppercase tracking-widest mt-1">Sign in to manage MonoLog</p>
           </div>
         </div>
 
         {/* Form */}
         <form
           onSubmit={handleLogin}
-          className="bg-white dark:bg-[#0F172A] rounded-2xl border border-border shadow-level-2 p-6 space-y-5"
+          className="bento-card bg-surface p-8 space-y-6 shadow-xl"
         >
           {error && (
-            <div className="px-4 py-3 rounded-xl bg-error/8 border border-error/20 text-error text-sm text-center">
+            <div className="px-4 py-3 rounded-xl bg-error text-surface text-sm text-center">
               {error}
             </div>
           )}
 
           {/* Username */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-surface-on" htmlFor="username">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-black uppercase tracking-widest" htmlFor="username">
               Username
             </label>
             <div className="relative">
@@ -72,14 +72,14 @@ export default function LoginPage() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-surface text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
           </div>
 
           {/* Password */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-surface-on" htmlFor="password">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-black uppercase tracking-widest" htmlFor="password">
               Password
             </label>
             <div className="relative">
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-stone-50/50 text-black text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
               />
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-4 rounded-full bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-[1.02] transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-2"
           >
             {loading ? "Authenticating…" : "Sign In"}
           </button>

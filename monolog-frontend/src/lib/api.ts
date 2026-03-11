@@ -72,6 +72,7 @@ export const api = {
     getStats: (token: string) => fetchApi('/analytics/stats', {
       headers: { Authorization: `Bearer ${token}` }
     }),
+    getPublicStats: () => fetchApi('/analytics/public-stats'),
   },
   auth: {
     login: (credentials: any) => fetchApi('/auth/login', {

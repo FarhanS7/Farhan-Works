@@ -4,18 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
           "bg-primary text-white shadow-blue hover:bg-primary-hover active:scale-[0.98]",
         secondary:
-          "bg-surface-muted text-surface-on border border-border hover:border-primary/40 hover:bg-primary/5",
+          "bg-surface-muted text-surface-on border border-border hover:border-surface-on hover:bg-surface",
         ghost:
           "text-text-muted hover:text-surface-on hover:bg-surface-muted",
         outline:
-          "border border-border bg-white dark:bg-surface-muted text-surface-on hover:border-primary/40 hover:bg-primary/5",
+          "border border-border bg-surface text-surface-on hover:border-surface-on hover:bg-surface-muted",
         destructive:
           "bg-error text-white hover:bg-error/90",
       },

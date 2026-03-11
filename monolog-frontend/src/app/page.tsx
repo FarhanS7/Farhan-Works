@@ -1,235 +1,287 @@
 "use client"
 
-import { PostCard } from "@/components/post-card"
 import { api } from "@/lib/api"
-import { Search } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  ArcElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+} from "chart.js"
+import {
+  ArrowRight,
+  BookOpen,
+  Heart,
+  MessageSquare,
+  Ruler,
+  Search,
+  Sparkles
+} from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
-/* ── Animated stat bubble ─────────────────────────────────── */
-function StatBubble({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <p className="text-2xl md:text-3xl font-extrabold text-primary">{value}</p>
-      <p className="text-xs text-text-muted mt-0.5">{label}</p>
-    </div>
-  )
-}
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler,
+    ArcElement
+)
 
-/* ── Category pill ────────────────────────────────────────── */
-function CategoryPill({ label, active }: { label: string; active: boolean }) {
-  return (
-    <button
-      className={
-        active
-          ? "px-4 py-1.5 rounded-full text-sm font-semibold bg-primary text-white shadow-blue transition-all"
-          : "px-4 py-1.5 rounded-full text-sm font-medium bg-surface-muted text-text-muted hover:bg-primary/10 hover:text-primary transition-all border border-border"
-      }
-    >
-      {label}
-    </button>
-  )
-}
-
-/* ── Skeleton card ────────────────────────────────────────── */
-function SkeletonCard() {
-  return (
-    <div className="rounded-2xl border border-border overflow-hidden">
-      <div className="h-3 w-1/3 skeleton rounded m-4 mb-0" />
-      <div className="p-4 space-y-2">
-        <div className="h-5 w-5/6 skeleton rounded" />
-        <div className="h-5 w-4/6 skeleton rounded" />
-        <div className="h-4 w-full skeleton rounded mt-3" />
-        <div className="h-4 w-4/5 skeleton rounded" />
-        <div className="h-4 w-2/3 skeleton rounded" />
-      </div>
-    </div>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
-  const [posts,   setPosts]   = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
+    const [posts, setPosts] = useState<any[]>([])
+    const [stats, setStats] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+    const [search, setSearch] = useState("")
 
-  useEffect(() => {
-    api.posts.getAll()
-      .then(setPosts)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [])
+    useEffect(() => {
+        const loadHomePageData = async () => {
+             try {
+                const [postsData, statsData] = await Promise.all([
+                    api.posts.getAll(),
+                    api.analytics.getPublicStats().catch(() => null)
+                ])
+                setPosts(postsData)
+                setStats(statsData)
+             } catch (e) {
+                console.error(e)
+             } finally {
+                setLoading(false)
+             }
+        }
+        loadHomePageData()
+    }, [])
 
-  const [search, setSearch] = useState("")
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (search.trim()) {
-      window.location.href = `/posts?q=${encodeURIComponent(search)}`
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (search.trim()) window.location.href = "/posts?q=" + encodeURIComponent(search)
     }
-  }
 
-  return (
-    <>
-      {/* ── Hero ──────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden bg-white dark:bg-black">
-        {/* Simple background pattern */}
-        <div className="absolute inset-0 hero-pattern opacity-[0.05] pointer-events-none" aria-hidden />
+    // Chart Data - Using Real Weekly Views
+    const lineChartData = {
+        labels: stats?.weeklyViews?.map((v: any) => v.label) || ['-', '-', '-', '-', '-', '-', '-'],
+        datasets: [{
+            data: stats?.weeklyViews?.map((v: any) => v.value) || [0, 0, 0, 0, 0, 0, 0],
+            borderColor: '#0f172a',
+            borderWidth: 1.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: '#0f172a',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
+            backgroundColor: (context: any) => {
+                const ctx = context.chart.ctx;
+                const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+                gradient.addColorStop(0, 'rgba(15, 23, 42, 0.08)');
+                gradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
+                return gradient;
+            },
+        }]
+    }
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <div className="space-y-8 animate-fade-up">
-            {/* Badge */}
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/20 text-xs font-bold tracking-widest uppercase">
-              Blog
+    if (loading) return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+                <span className="text-slate-400 font-medium animate-pulse">Initializing MonoLog...</span>
             </div>
-
-            {/* Headline */}
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] text-black dark:text-white">
-              Discover our latest news
-            </h1>
-
-            {/* Sub */}
-            <p className="text-lg md:text-xl text-text-muted max-w-2xl mx-auto leading-relaxed">
-              Discover the achievements that set us apart. From groundbreaking projects to industry accolades,
-              we take pride in our accomplishments.
-            </p>
-
-            {/* Centered Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="relative max-w-2xl mx-auto mt-10">
-              <div className="flex items-center gap-2 p-2 bg-white dark:bg-surface-muted rounded-2xl border border-border shadow-md focus-within:border-black dark:focus-within:border-white transition-all">
-                <div className="pl-4 text-text-faint">
-                  <Search size={20} />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Input Placeholder"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="flex-1 bg-transparent border-none focus:ring-0 text-black dark:text-white placeholder:text-text-faint/50 text-base"
-                />
-                <button
-                  type="submit"
-                  className="px-8 py-3 rounded-xl bg-black text-white dark:bg-white dark:text-black font-bold text-sm hover:opacity-90 transition-all"
-                >
-                  Find Now
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
-      </section>
+    )
 
-      {/* ── Main Content Grid ─────────────────────────────── */}
-      <section className="bg-white dark:bg-black border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
-          <div className="flex flex-col lg:flex-row gap-12">
+    return (
+        <main className="min-h-screen bg-slate-50 antialiased text-slate-800 selection:bg-rose-100 selection:text-rose-900 flex flex-col items-center">
+            {/* Main Portal Container */}
+            <div className="overflow-hidden grid grid-cols-12 lg:p-10 bg-slate-50 w-full max-w-screen-2xl relative gap-8 p-6">
+                
+                {/* Texture Overlay */}
+                <div className="absolute inset-0 bg-white/40 pointer-events-none opacity-40"></div>
+
+                {/* Main Content Area */}
+                <div className="col-span-12 flex flex-col gap-10 z-10 w-full">
+                    
+                    {/* Public Header */}
+                    <header className="flex flex-wrap items-center justify-between gap-6 pb-2">
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:rotate-6 transition-all duration-500">
+                                <BookOpen size={22} strokeWidth={2.5} />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-2xl text-slate-900 font-black tracking-tight leading-none">MonoLog</span>
+                                <span className="text-[10px] text-slate-400 font-black tracking-widest uppercase mt-1">Reader Portal</span>
+                            </div>
+                        </Link>
+
+                        {/* Profile & Session - Removed as auth system is not implemented */}
+                    </header>
+
+                    {/* Master Hero Display */}
+                    <div className="min-h-[600px] flex flex-col overflow-hidden bg-slate-900 rounded-[3rem] p-10 relative justify-between shadow-2xl border border-white/5">
+                        {/* High-End Motion Background */}
+                        <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden">
+                             <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-rose-600/30 blur-[120px] rounded-full animate-pulse"></div>
+                             <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[100px] rounded-full"></div>
+                        </div>
+                        
+                        {/* Hero Narrative */}
+                        <div className="z-10 relative max-w-xl">
+                            <div className="flex items-center gap-2 mb-8">
+                                <Sparkles size={16} className="text-rose-500" />
+                                <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em]">Featured Publication</span>
+                            </div>
+                            <h1 className="text-5xl md:text-6xl text-white font-black tracking-tight leading-[0.9] mb-6">
+                                The code that <br/> <span className="text-slate-500 group-hover:text-white transition-colors">shapes the void.</span>
+                            </h1>
+                            <p className="text-slate-400 text-base font-medium leading-relaxed mb-10 max-w-md">
+                                Deep dives into modern engineering, distributed systems, and the artistic layer of software development.
+                            </p>
+                            <Link href="/posts" className="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 rounded-full font-black text-xs uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-xl group">
+                                Explore Library
+                                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+
+                        {/* Community Momentum stats */}
+                        <div className="flex gap-16 z-10 relative border-t border-white/10 pt-10">
+                            <div>
+                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Total Readers</div>
+                                <div className="text-5xl text-white font-black tracking-tighter">
+                                    {((stats?.totalViews || 0) / 1000).toFixed(1)}<span className="text-2xl text-slate-600 ml-1 font-bold">K</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Reader Synergy</div>
+                                <div className="text-5xl text-white font-black tracking-tighter">
+                                    {stats?.engagementRate || "0.0"}<span className="text-2xl text-slate-600 ml-1 font-bold">%</span>
+                                </div>
+                            </div>
+                             <div className="hidden md:block">
+                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Published Works</div>
+                                <div className="text-5xl text-white font-black tracking-tighter">
+                                    {stats?.totalPosts || posts.length}<span className="text-2xl text-slate-600 ml-1 font-bold">+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Discovery Controls */}
+                    <div className="flex flex-wrap items-center justify-between gap-6">
+                        <div className="flex items-center gap-8">
+                            <div className="hidden sm:flex flex-col gap-0.5">
+                                <span className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em]">CURRENT PHASE</span>
+                                <span className="text-sm font-bold text-slate-900 tracking-tight">Active Learning</span>
+                            </div>
+                            
+                            <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
+                            
+                            <form onSubmit={handleSearch} className="relative group min-w-[320px]">
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 size-4 group-focus-within:text-slate-900 transition-colors" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search the archives..." 
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full pl-12 pr-5 py-3.5 bg-white rounded-3xl text-sm font-semibold text-slate-700 placeholder-slate-300 shadow-sm border border-slate-100/50 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-200 outline-none transition-all"
+                                />
+                            </form>
+                        </div>
+
+                        <div className="flex bg-slate-100/50 p-1.5 rounded-full border border-slate-100">
+                             {["All", "Philosophy", "Engineering", "Design"].map((cat, i) => (
+                                <button key={cat} className={cn(
+                                    "px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-full transition-all",
+                                    i === 0 ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                                )}>
+                                    {cat}
+                                </button>
+                             ))}
+                        </div>
+                    </div>
+
+                    {/* We removed the Secondary Bento Grid containing analytics as per user request */}
+                </div>
+                    {/* Horizontal Blog Archives */}
+                    <div className="col-span-12 w-full mt-4 z-10">
+                        {/* Featured Item Cards Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {posts.map((post, idx) => {
+                            // Calculate read time based on word count (avg 200 words/min)
+                            const wordCount = post.content ? post.content.split(/\s+/).length : 0;
+                            const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+                            return (
+                                <Link key={post.id} href={`/posts/${post.id}`} className="group relative flex flex-col bg-slate-50 rounded-[2.5rem] p-4 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-slate-100">
+                                    <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] mb-6 shadow-sm">
+                                        <img 
+                                            src={post.hero_image || "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop"} 
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                                            alt={post.title}
+                                        />
+                                        <div className="absolute top-4 right-4">
+                                            <div className="bg-white/90 backdrop-blur-xl p-2.5 rounded-full shadow-md text-rose-500 hover:text-rose-600 hover:scale-110 transition-all cursor-pointer">
+                                                <Heart size={18} className="fill-current" />
+                                            </div>
+                                        </div>
+                                        <div className="absolute bottom-4 left-4">
+                                            <div className="bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/10">
+                                                {post.category || "General"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="px-2">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span className="text-rose-600 text-[11px] font-black uppercase tracking-[0.2em]">
+                                                {new Date(post.published_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            </span>
+                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
+                                            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                                                {idx === 0 ? "Latest Arrival" : "Essential Read"}
+                                            </span>
+                                        </div>
+                                        
+                                        <h3 className="text-2xl font-black text-rose-600 mb-6 line-clamp-2 leading-tight tracking-tight group-hover:text-rose-700 transition-colors">
+                                            {post.title}
+                                        </h3>
+                                        
+                                        <div className="flex items-center gap-6 text-slate-400">
+                                            <div className="flex items-center gap-2">
+                                                <MessageSquare size={14} strokeWidth={2}/>
+                                                <span className="text-xs font-bold">{post.comments || 0}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Heart size={14} strokeWidth={2} />
+                                                <span className="text-xs font-bold">{post.reactions || 0}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-auto text-slate-500">
+                                                <Ruler size={14} strokeWidth={2}/>
+                                                <span className="text-[10px] font-black tracking-widest uppercase">{readTime}M READ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
             
-            {/* Left Column: Posts */}
-            <div className="flex-1">
-              <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter">
-                  Whiteboards are remarkable.
-                </h2>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[1, 2, 4, 5].map(i => <SkeletonCard key={i} />)}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-10">
-                  {posts.slice(0, 4).map(post => (
-                    <PostCard
-                      key={post.id}
-                      id={post.id}
-                      title={post.title}
-                      excerpt={post.excerpt || ""}
-                      date={new Date(post.published_at).toLocaleDateString(undefined, {
-                        month: "short", day: "2-digit", year: "numeric",
-                      })}
-                      readTime={`${Math.min(10, Math.max(1, Math.ceil((post.content || post.excerpt || "").split(" ").length / 200)))} min read`}
-                      views={parseInt(post.views) || 0}
-                      comments={parseInt(post.comments) || 0}
-                      category={post.category || "Uncategorized"}
-                    />
-                  ))}
-                </div>
-              )}
+            {/* Minimal Footer */}
+            <div className="absolute bottom-4 left-0 right-0 text-center opacity-30 select-none z-0">
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900">MonoLog Publication © 2026</span>
             </div>
-
-            {/* Right Column: Sidebar */}
-            <aside className="w-full lg:w-80 space-y-12">
-              {/* Featured Section */}
-              <div>
-                <div className="flex items-center gap-4 mb-6">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-black dark:text-white">Featured</h3>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="space-y-6">
-                  {posts.slice(4, 7).map(post => (
-                    <Link key={post.id} href={`/post/${post.id}`} className="group flex gap-4">
-                      <div className="w-20 h-20 shrink-0 bg-surface-muted rounded-xl overflow-hidden border border-border group-hover:border-black dark:group-hover:border-white transition-all">
-                        {/* Placeholder for image */}
-                        <div className="w-full h-full bg-gradient-to-br from-black/5 to-black/10 dark:from-white/5 dark:to-white/10" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] uppercase tracking-wider text-text-faint font-bold mb-1">
-                          {new Date(post.published_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </p>
-                        <h4 className="text-sm font-bold text-black dark:text-white line-clamp-2 leading-tight group-hover:opacity-70 transition-opacity">
-                          {post.title}
-                        </h4>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* Latest Section */}
-              <div>
-                <div className="flex items-center gap-4 mb-6">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-black dark:text-white">Latest</h3>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="space-y-6">
-                  {posts.slice(7, 10).map(post => (
-                    <Link key={post.id} href={`/post/${post.id}`} className="group block">
-                      <p className="text-[10px] uppercase tracking-wider text-text-faint font-bold mb-1">
-                        {new Date(post.published_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                      </p>
-                      <h4 className="text-sm font-bold text-black dark:text-white line-clamp-2 leading-tight group-hover:opacity-70 transition-opacity">
-                        {post.title}
-                      </h4>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </aside>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA banner ────────────────────────────────────── */}
-      <section className="bg-black dark:bg-surface-muted border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24 flex flex-col items-center text-center gap-8">
-          <div className="space-y-4">
-            <h2 className="text-3xl md:text-5xl font-black text-white dark:text-white tracking-tighter uppercase">
-              Stay in the loop.
-            </h2>
-            <p className="text-text-faint max-w-xl mx-auto text-base md:text-lg">
-              New deep-dives and essays — no noise, just signal.
-            </p>
-          </div>
-          <Link
-            href="/posts"
-            className="px-10 py-4 rounded-full bg-white text-black dark:bg-white dark:text-black font-black uppercase tracking-widest text-sm hover:opacity-80 transition-all shadow-xl"
-          >
-            Start Reading
-          </Link>
-        </div>
-      </section>
-    </>
-  )
+        </main>
+    )
 }

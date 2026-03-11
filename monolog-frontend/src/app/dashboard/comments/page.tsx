@@ -77,7 +77,7 @@ export default function ModerationPage() {
 
       {/* Content */}
       {error ? (
-        <div className="p-8 text-center bg-error/8 border border-error/20 text-error rounded-2xl font-medium">
+        <div className="p-8 text-center bg-error text-surface rounded-2xl font-medium shadow-md">
           {error}
         </div>
       ) : loading ? (
@@ -93,7 +93,7 @@ export default function ModerationPage() {
               Pending Review ({pendingComments.length})
             </h2>
             {pendingComments.length === 0 ? (
-              <div className="text-center py-12 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-600 dark:text-emerald-400">
+              <div className="text-center py-12 bg-surface border border-emerald-500/20 rounded-2xl text-emerald-600 shadow-sm">
                 Great job! All comments have been reviewed.
               </div>
             ) : (
@@ -140,13 +140,13 @@ function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
   return (
     <div className={
       pending
-        ? "rounded-2xl border border-primary/30 bg-primary/5 p-5 shadow-level-1 space-y-4"
-        : "rounded-2xl border border-border bg-white dark:bg-[#0F172A] p-5 shadow-level-1 space-y-4 opacity-75"
+        ? "rounded-2xl border border-primary bg-surface-muted p-5 shadow-level-1 space-y-4"
+        : "rounded-2xl border border-border bg-surface p-5 shadow-level-1 space-y-4 opacity-75"
     }>
       {/* Header */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+          <div className="w-9 h-9 rounded-full bg-surface-muted text-primary flex items-center justify-center font-bold text-sm">
             <User size={16} />
           </div>
           <div>
@@ -159,7 +159,7 @@ function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
         <Link
           href={`/post/${comment.post_id}`}
           target="_blank"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-primary hover:bg-primary/5 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-primary hover:bg-surface-muted transition-all"
         >
           on "{comment.post_title}"
           <ExternalLink size={12} />
@@ -167,7 +167,7 @@ function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
       </div>
 
       {/* Content */}
-      <div className="px-4 py-3 rounded-xl bg-surface-alt dark:bg-[#0B1120] border border-border">
+      <div className="px-4 py-3 rounded-xl bg-surface border border-border">
         <p className="text-sm text-text-muted italic leading-relaxed">
           "{comment.content}"
         </p>
@@ -184,7 +184,7 @@ function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
           </button>
         )}
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-error hover:bg-error/10 text-sm font-semibold transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-error hover:bg-surface-muted text-sm font-semibold transition-all"
           onClick={() => onDelete(comment.id)}
         >
           <Trash2 size={14} /> Delete

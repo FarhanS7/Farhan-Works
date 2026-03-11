@@ -1,5 +1,6 @@
 "use client"
 
+import RichTextEditor from "@/components/rich-text-editor"
 import { api } from "@/lib/api"
 import { ChevronLeft, Save, Send, Trash2 } from "lucide-react"
 import Link from "next/link"
@@ -102,7 +103,7 @@ export default function EditPostPage({
       <p className="text-text-muted mb-8">{error}</p>
       <Link
         href="/dashboard/posts"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border bg-white dark:bg-surface-muted text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border bg-surface text-surface-on font-semibold text-sm hover:bg-surface-muted transition-all"
       >
         Back to Articles
       </Link>
@@ -123,7 +124,7 @@ export default function EditPostPage({
           <h1 className="text-2xl font-bold text-surface-on">Edit Post</h1>
         </div>
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-error hover:bg-error/10 transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-error hover:bg-surface-muted transition-all"
           onClick={handleDelete}
         >
           <Trash2 size={16} /> Delete Post
@@ -134,23 +135,22 @@ export default function EditPostPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 p-6 space-y-6">
+          <div className="rounded-2xl border border-border bg-surface shadow-level-1 p-6 space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-surface-on">Title</label>
               <input
                 type="text"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-lg font-bold placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-surface-on">Content (HTML Support)</label>
-              <textarea
-                className="w-full min-h-[500px] p-4 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm font-mono placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+              <label className="text-sm font-semibold text-surface-on">Content (Rich Text Editor)</label>
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
               />
             </div>
           </div>
@@ -158,7 +158,7 @@ export default function EditPostPage({
 
         {/* Sidebar */}
         <div>
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1">
+          <div className="rounded-2xl border border-border bg-surface shadow-level-1">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-bold text-surface-on">Post Settings</h2>
             </div>
@@ -169,7 +169,7 @@ export default function EditPostPage({
                 <div>
                   <span className={
                     isPublished
-                      ? "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                      ? "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white border border-emerald-500 shadow-sm"
                       : "px-3 py-1 rounded-full text-xs font-semibold bg-surface-muted text-text-muted border border-border"
                   }>
                     {isPublished ? 'Published' : 'Draft'}
@@ -181,7 +181,7 @@ export default function EditPostPage({
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Slug</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                 />
@@ -191,7 +191,7 @@ export default function EditPostPage({
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Category</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 />
@@ -200,7 +200,7 @@ export default function EditPostPage({
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Excerpt</label>
                 <textarea
-                  className="w-full h-24 px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+                  className="w-full h-24 px-3 py-2 rounded-xl border border-border bg-surface-alt text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all resize-none"
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
                 />
@@ -217,7 +217,7 @@ export default function EditPostPage({
                 </button>
                 {!isPublished && (
                   <button
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface text-surface-on font-semibold text-sm hover:bg-surface-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={saving}
                     onClick={() => handleSubmit(false)}
                   >
@@ -226,7 +226,7 @@ export default function EditPostPage({
                 )}
                 {isPublished && (
                   <button
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface text-surface-on font-semibold text-sm hover:bg-surface-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={saving}
                     onClick={() => handleSubmit(false)}
                   >

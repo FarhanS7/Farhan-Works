@@ -36,19 +36,126 @@ router.post('/view/:post_id', async (req, res) => {
   }
 });
 
+// Public: Site-wide stats for landing page
+router.get('/public-stats', async (req, res) => {
+  try {
+    const [
+      postCount,
+      viewCount,
+      approvedCommentCount,
+      reactionCount,
+      weeklyViews,
+      growthStats,
+      liveAudience
+    ] = await Promise.all([
+      query('SELECT COUNT(*) FROM posts WHERE is_published = TRUE'),
+      query('SELECT COUNT(*) FROM views'),
+      query('SELECT COUNT(*) FROM comments WHERE is_approved = TRUE'),
+      query('SELECT COUNT(*) FROM reactions'),
+      query(`
+        SELECT 
+          TO_CHAR(d.day, 'Mon') as label,
+          COALESCE(count, 0) as value
+        FROM (
+          SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day')::date AS day
+        ) d
+        LEFT JOIN (
+          SELECT DATE_TRUNC('day', viewed_at)::date as day, COUNT(*) as count
+          FROM views 
+          WHERE viewed_at >= CURRENT_DATE - INTERVAL '6 days'
+          GROUP BY 1
+        ) v ON d.day = v.day
+        ORDER BY d.day ASC
+      `),
+      query(`
+        SELECT 
+          (SELECT COUNT(*) FROM views WHERE viewed_at >= DATE_TRUNC('month', CURRENT_DATE)) as this_month,
+          (SELECT COUNT(*) FROM views WHERE viewed_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') AND viewed_at < DATE_TRUNC('month', CURRENT_DATE)) as last_month
+      `),
+      query("SELECT COUNT(DISTINCT ip_address) FROM views WHERE viewed_at > NOW() - INTERVAL '5 minutes'")
+    ]);
+
+    const totalViews = parseInt(viewCount.rows[0].count);
+    const totalInteractions = parseInt(approvedCommentCount.rows[0].count) + parseInt(reactionCount.rows[0].count);
+    const engagementRate = totalViews > 0 ? ((totalInteractions / totalViews) * 100).toFixed(1) : "0.0";
+
+    const thisMonth = parseInt(growthStats.rows[0].this_month);
+    const lastMonth = parseInt(growthStats.rows[0].last_month);
+    const monthlyGrowth = lastMonth > 0 ? (((thisMonth - lastMonth) / lastMonth) * 100).toFixed(0) : "0";
+
+    res.json({
+      totalPosts: parseInt(postCount.rows[0].count),
+      totalViews,
+      engagementRate,
+      monthlyGrowth,
+      liveAudience: parseInt(liveAudience.rows[0].count),
+      weeklyViews: weeklyViews.rows.map(r => ({ label: r.label, value: parseInt(r.value) })),
+      avgReads: (totalViews / 30).toFixed(1)
+    });
+  } catch (err) {
+    console.error('Error fetching public stats:', err);
+    res.status(500).json({ message: 'Error fetching stats' });
+  }
+});
+
 // Admin: Dashboard stats
 router.get('/stats', authenticateToken, async (req, res) => {
   try {
-    const [postCount, viewCount, commentCount] = await Promise.all([
+    const [
+      postCount,
+      viewCount,
+      pendingCommentCount,
+      approvedCommentCount,
+      reactionCount,
+      weeklyViews,
+      growthStats,
+      liveAudience
+    ] = await Promise.all([
       query('SELECT COUNT(*) FROM posts WHERE is_published = TRUE'),
       query('SELECT COUNT(*) FROM views'),
       query('SELECT COUNT(*) FROM comments WHERE is_approved = FALSE'),
+      query('SELECT COUNT(*) FROM comments WHERE is_approved = TRUE'),
+      query('SELECT COUNT(*) FROM reactions'),
+      query(`
+        SELECT 
+          TO_CHAR(d.day, 'Mon') as label,
+          COALESCE(count, 0) as value
+        FROM (
+          SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day')::date AS day
+        ) d
+        LEFT JOIN (
+          SELECT DATE_TRUNC('day', viewed_at)::date as day, COUNT(*) as count
+          FROM views 
+          WHERE viewed_at >= CURRENT_DATE - INTERVAL '6 days'
+          GROUP BY 1
+        ) v ON d.day = v.day
+        ORDER BY d.day ASC
+      `),
+      query(`
+        SELECT 
+          (SELECT COUNT(*) FROM views WHERE viewed_at >= DATE_TRUNC('month', CURRENT_DATE)) as this_month,
+          (SELECT COUNT(*) FROM views WHERE viewed_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') AND viewed_at < DATE_TRUNC('month', CURRENT_DATE)) as last_month
+      `),
+      query("SELECT COUNT(DISTINCT ip_address) FROM views WHERE viewed_at > NOW() - INTERVAL '5 minutes'")
     ]);
 
+    const totalViews = parseInt(viewCount.rows[0].count);
+    const totalInteractions = parseInt(approvedCommentCount.rows[0].count) + parseInt(reactionCount.rows[0].count);
+    const engagementRate = totalViews > 0 ? ((totalInteractions / totalViews) * 100).toFixed(1) : "0.0";
+
+    const thisMonth = parseInt(growthStats.rows[0].this_month);
+    const lastMonth = parseInt(growthStats.rows[0].last_month);
+    const monthlyGrowth = lastMonth > 0 ? (((thisMonth - lastMonth) / lastMonth) * 100).toFixed(0) : "0";
+
     res.json({
-      totalPosts: postCount.rows[0].count,
-      totalViews: viewCount.rows[0].count,
-      pendingComments: commentCount.rows[0].count,
+      totalPosts: parseInt(postCount.rows[0].count),
+      totalViews,
+      pendingComments: parseInt(pendingCommentCount.rows[0].count),
+      engagementRate,
+      monthlyGrowth,
+      liveAudience: parseInt(liveAudience.rows[0].count),
+      weeklyViews: weeklyViews.rows.map(r => ({ label: r.label, value: parseInt(r.value) })),
+      avgReads: (totalViews / 30).toFixed(1) // Rough monthly average
     });
   } catch (err) {
     console.error('Error fetching stats:', err);

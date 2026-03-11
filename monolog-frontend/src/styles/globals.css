@@ -2,36 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Tiptap / Rich Text Styles ──────────────────────────────── */
+.article-content {
+  @apply prose prose-slate md:prose-lg max-w-none;
+}
+
+.article-content .ProseMirror:focus {
+  @apply outline-none;
+}
+
+.article-content p {
+  @apply leading-relaxed mb-6;
+}
+
+.article-content h1, 
+.article-content h2, 
+.article-content h3 {
+  @apply font-bold tracking-tight text-surface-on mb-4 mt-10;
+}
+
+.article-content img {
+  @apply rounded-2xl border border-border my-10 mx-auto block shadow-level-2 transition-transform hover:scale-[1.01];
+}
+
+.article-content pre {
+  @apply rounded-2xl bg-slate-900 border border-slate-800 p-6 my-8 font-mono text-sm leading-relaxed overflow-x-auto shadow-inner;
+}
+
+.article-content code {
+  @apply px-1.5 py-0.5 rounded-md bg-surface-muted text-primary font-mono text-[0.9em] border border-border;
+}
+
+.article-content pre code {
+  @apply p-0 bg-transparent border-none text-slate-100;
+}
+
+.article-content ul {
+  @apply list-disc list-inside mb-6 space-y-2;
+}
+
+.article-content ol {
+  @apply list-decimal list-inside mb-6 space-y-2;
+}
+
+.article-content blockquote {
+  @apply pl-6 border-l-4 border-primary italic text-text-muted my-8 py-2 bg-surface-muted rounded-r-xl;
+}
+
+/* ──────────────────────────────────────────────────────────── */
+
 /* ── White & Black Design System ──────────────────────────── */
 :root {
-  /* Primary – Black */
-  --color-primary:          #000000;
-  --color-primary-hover:    #1A1A1A;
-  --color-primary-light:    #F5F5F5;
-  --color-primary-container:#E5E5E5;
+  /* Primary – Rose */
+  --color-primary:          #e11d48;
+  --color-primary-hover:    #be123c;
+  --color-primary-light:    #fff1f2;
+  --color-primary-container:#ffe4e6;
   --color-primary-on:       #FFFFFF;
 
-  /* Surfaces */
+  /* Surfaces - Slate */
   --color-surface:          #FFFFFF;
-  --color-surface-alt:      #FAFAFA;
-  --color-surface-muted:    #F2F2F2;
-  --color-surface-on:       #000000;
+  --color-surface-alt:      #f8fafc;
+  --color-surface-muted:    #f1f5f9;
+  --color-surface-on:       #0f172a;
 
   /* Text */
-  --color-text:             #000000;
-  --color-text-muted:       #4B4B4B;
-  --color-text-faint:       #8E8E8E;
+  --color-text:             #1e293b;
+  --color-text-muted:       #64748b;
+  --color-text-faint:       #94a3b8;
 
   /* Borders */
-  --color-border:           #E5E5E5;
-  --color-border-light:     #F0F0F0;
+  --color-border:           #e2e8f0;
+  --color-border-light:     #f1f5f9;
 
-  /* Accent */
-  --color-accent:           #000000;
+  /* Accent - Sky */
+  --color-accent:           #0ea5e9;
 
   /* Error */
-  --color-error:            #D0021B;
-  --color-error-container:  #FDF0F1;
+  --color-error:            #ef4444;
+  --color-error-container:  #fef2f2;
 
   /* Shadows */
   --shadow-sm:  0 1px 2px 0 rgba(0,0,0,0.05);
@@ -63,59 +112,6 @@
   --md-sys-elevation-1: var(--shadow-sm);
   --md-sys-elevation-2: var(--shadow-md);
   --md-sys-elevation-3: var(--shadow-lg);
-}
-
-/* ── Dark mode ──────────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :root:not(.dark-override) {
-    --color-primary:          #FFFFFF;
-    --color-primary-hover:    #F2F2F2;
-    --color-primary-light:    #1A1A1A;
-    --color-primary-container:#333333;
-    --color-primary-on:       #000000;
-
-    --color-surface:          #000000;
-    --color-surface-alt:      #0A0A0A;
-    --color-surface-muted:    #121212;
-    --color-surface-on:       #FFFFFF;
-
-    --color-text:             #FFFFFF;
-    --color-text-muted:       #A0A0A0;
-    --color-text-faint:       #666666;
-
-    --color-border:           #1F1F1F;
-    --color-border-light:     #141414;
-
-    --color-accent:           #FFFFFF;
-
-    --color-error:            #FF5F5F;
-    --color-error-container:  #3D0B0B;
-  }
-}
-
-.dark {
-  --color-primary:          #FFFFFF;
-  --color-primary-hover:    #F2F2F2;
-  --color-primary-light:    #1A1A1A;
-  --color-primary-container:#333333;
-  --color-primary-on:       #000000;
-
-  --color-surface:          #000000;
-  --color-surface-alt:      #0A0A0A;
-  --color-surface-muted:    #121212;
-  --color-surface-on:       #FFFFFF;
-
-  --color-text:             #FFFFFF;
-  --color-text-muted:       #A0A0A0;
-  --color-text-faint:       #666666;
-
-  --color-border:           #1F1F1F;
-  --color-border-light:     #141414;
-
-  --color-accent:           #FFFFFF;
-
-  --color-error:            #FF5F5F;
-  --color-error-container:  #3D0B0B;
 }
 
 /* ── Base ───────────────────────────────────────────────── */
@@ -164,11 +160,19 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ── Card ───────────────────────────────────────────────── */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s cubic-bezier(0.2, 0, 0, 1), border-color 0.3s ease;
 }
 .card-hover:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(37,99,235,.06);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.bento-card {
+  @apply rounded-[2rem] overflow-hidden border border-border transition-all duration-300;
+}
+
+.circle-btn {
+  @apply w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300;
 }
 
 /* ── Article content ────────────────────────────────────── */
@@ -302,4 +306,25 @@ h1, h2, h3, h4, h5, h6 {
     var(--color-border-light) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
+}
+/* Premium Gradient Border Utility */
+[style*="--border-gradient"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: var(--border-radius-before, inherit);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  background: var(--border-gradient);
+  pointer-events: none;
+}
+
+.glass-card {
+  @apply bg-surface backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.premium-gradient {
+  @apply bg-gradient-to-br from-slate-500 via-slate-400 to-slate-100;
 }

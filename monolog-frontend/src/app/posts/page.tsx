@@ -9,21 +9,16 @@ import { Suspense, useEffect, useRef, useState } from "react"
 /* ── Skeleton ─────────────────────────────────────────────── */
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-border overflow-hidden bg-white dark:bg-[#0F172A]">
-      <div className="h-0.5 w-full bg-border" />
-      <div className="p-5 space-y-3">
-        <div className="flex justify-between">
-          <div className="h-3.5 w-20 skeleton rounded-full" />
-          <div className="h-3 w-16 skeleton rounded-full" />
-        </div>
-        <div className="h-5 w-5/6 skeleton rounded" />
-        <div className="h-5 w-3/4 skeleton rounded" />
-        <div className="h-4 w-full skeleton rounded mt-2" />
-        <div className="h-4 w-4/5 skeleton rounded" />
-        <div className="flex justify-between pt-3 border-t border-border mt-2">
-          <div className="h-3 w-16 skeleton rounded" />
-          <div className="h-3 w-20 skeleton rounded" />
-        </div>
+    <div className="bento-card bg-surface p-6 space-y-4">
+      <div className="flex justify-between">
+        <div className="h-3 w-20 skeleton rounded-full" />
+        <div className="h-3 w-16 skeleton rounded-full" />
+      </div>
+      <div className="h-6 w-5/6 skeleton rounded" />
+      <div className="h-4 w-full skeleton rounded mt-2" />
+      <div className="flex justify-between pt-4 border-t border-border mt-auto">
+        <div className="h-3 w-16 skeleton rounded" />
+        <div className="h-3 w-20 skeleton rounded" />
       </div>
     </div>
   )
@@ -98,12 +93,12 @@ function PostsContent() {
                 : url.searchParams.delete("q")
               window.history.replaceState({}, "", url.toString())
             }}
-            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-border bg-white dark:bg-[#0F172A] text-surface-on placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-border bg-surface text-surface-on placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary transition-all"
           />
         </div>
 
         {/* Filter icon */}
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-[#0F172A] text-text-muted hover:border-primary/40 hover:text-primary transition-all text-sm">
+        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white text-text-muted hover:border-black transition-all text-sm font-bold uppercase tracking-widest">
           <SlidersHorizontal size={15} /> Filter
         </button>
       </div>
@@ -117,8 +112,8 @@ function PostsContent() {
               onClick={() => setActiveCategory(cat)}
               className={
                 activeCategory === cat
-                  ? "px-4 py-1.5 rounded-full text-xs font-semibold bg-primary text-white shadow-blue transition-all"
-                  : "px-4 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-[#0F172A] text-text-muted border border-border hover:border-primary/40 hover:text-primary transition-all"
+                  ? "px-4 py-1.5 rounded-full text-[10px] font-black bg-black text-white transition-all uppercase tracking-widest"
+                  : "px-4 py-1.5 rounded-full text-[10px] font-bold bg-surface text-text-muted border border-border hover:border-surface-on transition-all uppercase tracking-widest"
               }
             >
               {cat}
@@ -133,7 +128,7 @@ function PostsContent() {
           {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)}
         </div>
       ) : error ? (
-        <div className="py-12 rounded-2xl border border-error/20 bg-error/5 text-center">
+        <div className="py-12 rounded-2xl border border-error bg-surface text-center">
           <p className="text-error font-medium">Failed to load posts</p>
           <p className="text-sm text-text-muted mt-1">{error}</p>
         </div>

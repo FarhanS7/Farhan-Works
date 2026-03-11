@@ -1,5 +1,6 @@
 "use client"
 
+import RichTextEditor from "@/components/rich-text-editor"
 import { api } from "@/lib/api"
 import { ChevronLeft, Save, Send } from "lucide-react"
 import Link from "next/link"
@@ -63,13 +64,13 @@ export default function NewPostPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 p-6 space-y-6">
+          <div className="rounded-2xl border border-border bg-surface shadow-level-1 p-6 space-y-6">
             {/* Title */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-surface-on">Title</label>
               <input
                 type="text"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-lg font-bold placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-surface-on text-lg font-bold placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
                 placeholder="The Art of..."
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
@@ -78,12 +79,11 @@ export default function NewPostPage() {
 
             {/* Content */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-surface-on">Content (HTML Support)</label>
-              <textarea
-                className="w-full min-h-[400px] p-4 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm font-mono placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+              <label className="text-sm font-semibold text-surface-on">Content (Rich Text Editor)</label>
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
                 placeholder="Write your thoughts here..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
               />
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function NewPostPage() {
 
         {/* Sidebar */}
         <div>
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1">
+          <div className="rounded-2xl border border-border bg-surface shadow-level-1">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-bold text-surface-on">Post Settings</h2>
             </div>
@@ -101,7 +101,7 @@ export default function NewPostPage() {
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Slug</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                 />
@@ -112,7 +112,7 @@ export default function NewPostPage() {
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Category</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-surface text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all"
                   placeholder="e.g. Technology"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -123,7 +123,7 @@ export default function NewPostPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Excerpt</label>
                 <textarea
-                  className="w-full h-24 px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+                  className="w-full h-24 px-3 py-2 rounded-xl border border-border bg-surface-alt text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-primary focus:border-primary transition-all resize-none"
                   placeholder="Short summary..."
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
@@ -140,7 +140,7 @@ export default function NewPostPage() {
                   <Send size={16} /> Publish Now
                 </button>
                 <button
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface-alt text-surface-on font-semibold text-sm hover:border-surface-on hover:bg-surface-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loading}
                   onClick={() => handleSubmit(false)}
                 >
