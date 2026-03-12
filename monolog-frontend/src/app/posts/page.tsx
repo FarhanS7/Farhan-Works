@@ -157,6 +157,7 @@ function PostsContent() {
               views={parseInt(post.views) || 0}
               comments={parseInt(post.comments) || 0}
               category={post.category || "Uncategorized"}
+              coverImageUrl={post.cover_image_url}
             />
           ))}
         </div>

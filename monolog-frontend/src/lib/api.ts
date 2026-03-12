@@ -42,6 +42,27 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` }
     }),
   },
+  series: {
+    getAll: () => fetchApi('/series'),
+    getAdminList: (token: string) => fetchApi('/series/admin/list', {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+    getOne: (id_or_slug: string) => fetchApi(`/series/${id_or_slug}`),
+    create: (data: any, token: string) => fetchApi('/series', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+    update: (id: string, data: any, token: string) => fetchApi(`/series/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+    delete: (id: string, token: string) => fetchApi(`/series/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+  },
   comments: {
     getByPost: (postId: string) => fetchApi(`/comments/${postId}`),
     submit: (data: any) => fetchApi('/comments', {

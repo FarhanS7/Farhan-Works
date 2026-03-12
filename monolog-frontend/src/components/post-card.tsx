@@ -10,6 +10,7 @@ interface PostCardProps {
   views: number
   comments: number
   category: string
+  coverImageUrl?: string
 }
 
 /* ── Category colour mapping ──────────────────────────────── */
@@ -36,25 +37,36 @@ export function PostCard({
   views,
   comments,
   category,
+  coverImageUrl,
 }: PostCardProps) {
   return (
-    <Link href={`/post/${id}`} className="group block h-full">
-      <article className="bento-card card-hover flex flex-col h-full bg-surface hover:bg-surface-muted p-6 sm:p-8">
-        
-        {/* Category Prefix */}
-        <div className="flex flex-col mb-6">
-          <span className="text-[10px] font-bold text-text-faint tracking-[0.2em] mb-1 opacity-60 uppercase">
-            // {category}
-          </span>
-          <div className="flex items-center justify-between">
-            <span
-              className={
-                "inline-flex items-center px-3 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest " +
-                getCategoryClasses(category)
-              }
-            >
-              {category}
+    <Link href={`/posts/${id}`} className="group block h-full">
+      <article className="bento-card card-hover flex flex-col h-full bg-surface hover:bg-surface-muted overflow-hidden">
+        {coverImageUrl && (
+          <div className="h-48 w-full overflow-hidden border-b border-border">
+            <img 
+              src={coverImageUrl} 
+              alt={title} 
+              className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" 
+            />
+          </div>
+        )}
+        <div className="p-6 sm:p-8 flex flex-col flex-1">
+          {/* Category Prefix */}
+          <div className="flex flex-col mb-6">
+            <span className="text-[10px] font-bold text-text-faint tracking-[0.2em] mb-1 opacity-60 uppercase">
+              // {category}
             </span>
+            <div className="flex items-center justify-between">
+              <span
+                className={
+                  "inline-flex items-center px-3 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest " +
+                  getCategoryClasses(category)
+                }
+              >
+                {category}
+              </span>
+            </div>
           </div>
         </div>
 

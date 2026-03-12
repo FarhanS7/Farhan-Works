@@ -10,6 +10,7 @@ import analyticsRoutes from './routes/analytics.js';
 import authRoutes from './routes/auth.js';
 import commentRoutes from './routes/comments.js';
 import postRoutes from './routes/posts.js';
+import seriesRoutes from './routes/series.js';
 import reactionRoutes from './routes/reactions.js';
 
 dotenv.config();
@@ -75,6 +76,7 @@ app.get('/health', async (_req, res) => {
 // ── API routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth',      authLimiter,        authRoutes);
 app.use('/api/posts',     apiLimiter,         postRoutes);
+app.use('/api/series',    apiLimiter,         seriesRoutes);
 app.use('/api/comments',  publicWriteLimiter, commentRoutes);
 app.use('/api/reactions', publicWriteLimiter, reactionRoutes);
 app.use('/api/analytics', apiLimiter,         analyticsRoutes);

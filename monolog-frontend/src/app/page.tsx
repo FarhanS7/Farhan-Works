@@ -225,7 +225,7 @@ export default function HomePage() {
                                 <Link key={post.id} href={`/posts/${post.id}`} className="group relative flex flex-col bg-slate-50 rounded-[2.5rem] p-4 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-slate-100">
                                     <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] mb-6 shadow-sm">
                                         <img 
-                                            src={post.hero_image || "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop"} 
+                                            src={post.cover_image_url || post.hero_image || "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop"} 
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                                             alt={post.title}
                                         />
