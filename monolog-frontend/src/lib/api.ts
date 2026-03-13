@@ -24,6 +24,7 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` }
     }),
     getOne: (id: string) => fetchApi(`/posts/${id}`),
+    getChapter: (seriesSlug: string, chapterSlug: string) => fetchApi(`/posts/${seriesSlug}/${chapterSlug}`),
     getAdminOne: (id: string, token: string) => fetchApi(`/posts/admin/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     }),
@@ -35,6 +36,11 @@ export const api = {
     update: (id: string, data: any, token: string) => fetchApi(`/posts/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+    reorder: (orders: { id: string, series_order: number }[], token: string) => fetchApi('/posts/admin/reorder', {
+      method: 'PUT',
+      body: JSON.stringify({ orders }),
       headers: { Authorization: `Bearer ${token}` }
     }),
     delete: (id: string, token: string) => fetchApi(`/posts/${id}`, {

@@ -1,7 +1,7 @@
 "use client"
 
 import { api } from "@/lib/api"
-import { ChevronLeft, Edit, Plus, Search, Trash2, Image as ImageIcon } from "lucide-react"
+import { ChevronLeft, Edit, Plus, Search, Trash2, Image as ImageIcon, ListOrdered } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -166,12 +166,19 @@ export default function SeriesDashboard() {
                     >
                       <Plus size={16} />
                     </Link>
-                    <button 
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-all"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <Link 
+                    href={`/dashboard/series/${item.id}/sort`}
+                    className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+                    title="Reorder Chapters"
+                  >
+                    <ListOrdered size={16} />
+                  </Link>
+                  <button 
+                    onClick={() => handleDelete(item.id)}
+                    className="p-2 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-all"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                   <Link 
                     href={`/series/${item.slug}`} 
                     target="_blank"

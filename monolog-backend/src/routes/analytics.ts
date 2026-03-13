@@ -42,6 +42,7 @@ router.get('/public-stats', async (req, res) => {
     const [
       postCount,
       viewCount,
+      uniqueReaderCount,
       approvedCommentCount,
       reactionCount,
       weeklyViews,
@@ -50,6 +51,7 @@ router.get('/public-stats', async (req, res) => {
     ] = await Promise.all([
       query('SELECT COUNT(*) FROM posts WHERE is_published = TRUE'),
       query('SELECT COUNT(*) FROM views'),
+      query('SELECT COUNT(DISTINCT ip_address) FROM views'),
       query('SELECT COUNT(*) FROM comments WHERE is_approved = TRUE'),
       query('SELECT COUNT(*) FROM reactions'),
       query(`
@@ -76,8 +78,9 @@ router.get('/public-stats', async (req, res) => {
     ]);
 
     const totalViews = parseInt(viewCount.rows[0].count);
+    const uniqueReaders = parseInt(uniqueReaderCount.rows[0].count);
     const totalInteractions = parseInt(approvedCommentCount.rows[0].count) + parseInt(reactionCount.rows[0].count);
-    const engagementRate = totalViews > 0 ? ((totalInteractions / totalViews) * 100).toFixed(1) : "0.0";
+    const engagementRate = uniqueReaders > 0 ? ((totalInteractions / uniqueReaders) * 100).toFixed(1) : "0.0";
 
     const thisMonth = parseInt(growthStats.rows[0].this_month);
     const lastMonth = parseInt(growthStats.rows[0].last_month);
@@ -86,11 +89,12 @@ router.get('/public-stats', async (req, res) => {
     res.json({
       totalPosts: parseInt(postCount.rows[0].count),
       totalViews,
+      uniqueReaders,
       engagementRate,
       monthlyGrowth,
       liveAudience: parseInt(liveAudience.rows[0].count),
       weeklyViews: weeklyViews.rows.map(r => ({ label: r.label, value: parseInt(r.value) })),
-      avgReads: (totalViews / 30).toFixed(1)
+      avgReads: (uniqueReaders / 30).toFixed(1)
     });
   } catch (err) {
     console.error('Error fetching public stats:', err);

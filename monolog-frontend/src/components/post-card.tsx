@@ -11,6 +11,7 @@ interface PostCardProps {
   comments: number
   category: string
   coverImageUrl?: string
+  series_slug?: string
 }
 
 /* ── Category colour mapping ──────────────────────────────── */
@@ -38,9 +39,13 @@ export function PostCard({
   comments,
   category,
   coverImageUrl,
+  series_slug,
 }: PostCardProps) {
+  // Navigate to nested URL if series exists, else catch-all blog URL
+  const postUrl = series_slug ? `/blog/${series_slug}/${id}` : `/blog/${id}`;
+
   return (
-    <Link href={`/posts/${id}`} className="group block h-full">
+    <Link href={postUrl} className="group block h-full">
       <article className="bento-card card-hover flex flex-col h-full bg-surface hover:bg-surface-muted overflow-hidden">
         {coverImageUrl && (
           <div className="h-48 w-full overflow-hidden border-b border-border">

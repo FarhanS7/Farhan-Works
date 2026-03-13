@@ -90,7 +90,56 @@ router.get('/admin/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Public: Get post by ID or slug
+// Public: Get post by series slug and chapter slug
+router.get('/:series_slug/:chapter_slug', async (req, res) => {
+  const { series_slug, chapter_slug } = req.params;
+  try {
+    const result = await query(`
+      SELECT p.*, s.title as series_title, s.slug as series_slug
+      FROM posts p
+      JOIN series s ON s.id = p.series_id
+      WHERE s.slug = $1 AND p.slug = $2 AND p.is_published = TRUE
+    `, [series_slug, chapter_slug]);
+    
+    if (result.rows.length === 0) return res.status(404).json({ message: 'Chapter not found' });
+    
+    const post = result.rows[0];
+    
+    // Get adjacent posts and full list for navigation
+    const adjacent = await query(`
+      (SELECT id, title, slug, series_order FROM posts 
+       WHERE series_id = $1 AND is_published = TRUE AND series_order < $2
+       ORDER BY series_order DESC LIMIT 1)
+      UNION ALL
+      (SELECT id, title, slug, series_order FROM posts 
+       WHERE series_id = $1 AND is_published = TRUE AND series_order > $2
+       ORDER BY series_order ASC LIMIT 1)
+    `, [post.series_id, post.series_order]);
+    
+    const seriesPosts = await query(`
+      SELECT id, title, slug, series_order 
+      FROM posts 
+      WHERE series_id = $1 AND is_published = TRUE 
+      ORDER BY series_order ASC, published_at ASC
+    `, [post.series_id]);
+
+    const prev = adjacent.rows.find(r => r.series_order < post.series_order);
+    const next = adjacent.rows.find(r => r.series_order > post.series_order);
+    
+    post.series_nav = { 
+      prev, 
+      next,
+      all: seriesPosts.rows
+    };
+    
+    res.json(post);
+  } catch (err) {
+    console.error('Error fetching chapter:', err);
+    res.status(500).json({ message: 'Error fetching chapter' });
+  }
+});
+
+// Public: Get post by ID or slug (Original, kept for single posts and backward compatibility)
 router.get('/:id_or_slug', async (req, res) => {
   const { id_or_slug } = req.params;
   try {
@@ -125,6 +174,9 @@ router.get('/:id_or_slug', async (req, res) => {
         WHERE series_id = $1 AND is_published = TRUE 
         ORDER BY series_order ASC, published_at ASC
       `, [post.series_id]);
+      
+      const prev = adjacent.rows.find(r => r.series_order < post.series_order || (r.series_order === post.series_order && new Date(r.published_at) < new Date(post.published_at)));
+      const next = adjacent.rows.find(r => r.series_order > post.series_order || (r.series_order === post.series_order && new Date(r.published_at) > new Date(post.published_at)));
       
       post.series_nav = { 
         prev, 
@@ -206,6 +258,30 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error deleting post:', err);
     res.status(500).json({ message: 'Error deleting post' });
+  }
+});
+
+// Admin: Reorder posts in a series
+router.put('/admin/reorder', authenticateToken, async (req, res) => {
+  const schema = z.object({
+    orders: z.array(z.object({
+      id: z.string().uuid(),
+      series_order: z.number().int()
+    }))
+  });
+
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+
+  try {
+    // Perform updates in a transaction-like manner (serialized queries here for simplicity)
+    for (const item of parsed.data.orders) {
+      await query('UPDATE posts SET series_order = $1 WHERE id = $2', [item.series_order, item.id]);
+    }
+    res.json({ message: 'Order updated successfully' });
+  } catch (err) {
+    console.error('Error reordering posts:', err);
+    res.status(500).json({ message: 'Error reordering posts' });
   }
 });
 

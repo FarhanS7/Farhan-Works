@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Ruler,
   Search,
-  Sparkles
+  Sparkles,
+  Layers
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -39,7 +40,7 @@ ChartJS.register(
 )
 
 export default function HomePage() {
-    const [posts, setPosts] = useState<any[]>([])
+    const [feedItems, setFeedItems] = useState<any[]>([])
     const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState("")
@@ -47,11 +48,19 @@ export default function HomePage() {
     useEffect(() => {
         const loadHomePageData = async () => {
              try {
-                const [postsData, statsData] = await Promise.all([
+                const [postsData, seriesData, statsData] = await Promise.all([
                     api.posts.getAll(),
+                    api.series.getAll(),
                     api.analytics.getPublicStats().catch(() => null)
                 ])
-                setPosts(postsData)
+                
+                // Merge and sort
+                const merged = [
+                    ...postsData.map((p: any) => ({ ...p, type: 'post' })),
+                    ...seriesData.map((s: any) => ({ ...s, type: 'series', published_at: s.created_at }))
+                ].sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+
+                setFeedItems(merged)
                 setStats(statsData)
              } catch (e) {
                 console.error(e)
@@ -123,19 +132,15 @@ export default function HomePage() {
                                 <span className="text-[10px] text-slate-400 font-black tracking-widest uppercase mt-1">Reader Portal</span>
                             </div>
                         </Link>
-
-                        {/* Profile & Session - Removed as auth system is not implemented */}
                     </header>
 
                     {/* Master Hero Display */}
                     <div className="min-h-[600px] flex flex-col overflow-hidden bg-slate-900 rounded-[3rem] p-10 relative justify-between shadow-2xl border border-white/5">
-                        {/* High-End Motion Background */}
                         <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden">
                              <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-rose-600/30 blur-[120px] rounded-full animate-pulse"></div>
                              <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[100px] rounded-full"></div>
                         </div>
                         
-                        {/* Hero Narrative */}
                         <div className="z-10 relative max-w-xl">
                             <div className="flex items-center gap-2 mb-8">
                                 <Sparkles size={16} className="text-rose-500" />
@@ -156,9 +161,9 @@ export default function HomePage() {
                         {/* Community Momentum stats */}
                         <div className="flex gap-16 z-10 relative border-t border-white/10 pt-10">
                             <div>
-                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Total Readers</div>
+                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Unique Readers</div>
                                 <div className="text-5xl text-white font-black tracking-tighter">
-                                    {((stats?.totalViews || 0) / 1000).toFixed(1)}<span className="text-2xl text-slate-600 ml-1 font-bold">K</span>
+                                    {(stats?.uniqueReaders || 0).toLocaleString()}
                                 </div>
                             </div>
                             <div>
@@ -170,7 +175,7 @@ export default function HomePage() {
                              <div className="hidden md:block">
                                 <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Published Works</div>
                                 <div className="text-5xl text-white font-black tracking-tighter">
-                                    {stats?.totalPosts || posts.length}<span className="text-2xl text-slate-600 ml-1 font-bold">+</span>
+                                    {stats?.totalPosts || 0}<span className="text-2xl text-slate-600 ml-1 font-bold">+</span>
                                 </div>
                             </div>
                         </div>
@@ -209,67 +214,85 @@ export default function HomePage() {
                              ))}
                         </div>
                     </div>
-
-                    {/* We removed the Secondary Bento Grid containing analytics as per user request */}
                 </div>
-                    {/* Horizontal Blog Archives */}
-                    <div className="col-span-12 w-full mt-4 z-10">
-                        {/* Featured Item Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {posts.map((post, idx) => {
-                            // Calculate read time based on word count (avg 200 words/min)
-                            const wordCount = post.content ? post.content.split(/\s+/).length : 0;
+
+                {/* Horizontal Blog Archives */}
+                <div className="col-span-12 w-full mt-4 z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {feedItems.map((item, idx) => {
+                            const isSeries = item.type === 'series';
+                            const url = isSeries ? `/blog/${item.slug}` : (item.series_slug ? `/blog/${item.series_slug}/${item.slug}` : `/blog/${item.slug}`);
+                            
+                            const wordCount = item.content ? item.content.split(/\s+/).length : 0;
                             const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
                             return (
-                                <Link key={post.id} href={`/posts/${post.id}`} className="group relative flex flex-col bg-slate-50 rounded-[2.5rem] p-4 hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-slate-100">
+                                <Link 
+                                    key={item.id + item.type} 
+                                    href={url}
+                                    className="group relative flex flex-col h-full bg-surface border border-border rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-level-3 hover:border-primary/40 hover:-translate-y-1"
+                                >
                                     <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] mb-6 shadow-sm">
                                         <img 
-                                            src={post.cover_image_url || post.hero_image || "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop"} 
+                                            src={item.cover_image_url || "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop"} 
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                                            alt={post.title}
+                                            alt={item.title}
                                         />
                                         <div className="absolute top-4 right-4">
-                                            <div className="bg-white/90 backdrop-blur-xl p-2.5 rounded-full shadow-md text-rose-500 hover:text-rose-600 hover:scale-110 transition-all cursor-pointer">
-                                                <Heart size={18} className="fill-current" />
-                                            </div>
+                                            {isSeries ? (
+                                                <div className="bg-primary/90 backdrop-blur-xl px-4 py-2 rounded-xl shadow-md text-white flex items-center gap-2">
+                                                    <Layers size={14} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">SERIES</span>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-white/90 backdrop-blur-xl p-2.5 rounded-full shadow-md text-rose-500 hover:text-rose-600 hover:scale-110 transition-all cursor-pointer">
+                                                    <Heart size={18} className="fill-current" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="absolute bottom-4 left-4">
                                             <div className="bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/10">
-                                                {post.category || "General"}
+                                                {isSeries ? (item.posts?.length || item.post_count || 0) + ' MODULES' : (item.category || "General")}
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div className="px-2">
+                                    <div className="px-2 pb-6">
                                         <div className="flex items-center gap-2 mb-4">
                                             <span className="text-rose-600 text-[11px] font-black uppercase tracking-[0.2em]">
-                                                {new Date(post.published_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                {new Date(item.published_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </span>
                                             <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
                                             <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                                {idx === 0 ? "Latest Arrival" : "Essential Read"}
+                                                {isSeries ? "Structured Curriculum" : (idx === 0 ? "Latest Arrival" : "Essential Read")}
                                             </span>
                                         </div>
                                         
-                                        <h3 className="text-2xl font-black text-rose-600 mb-6 line-clamp-2 leading-tight tracking-tight group-hover:text-rose-700 transition-colors">
-                                            {post.title}
+                                        <h3 className="text-2xl font-black text-slate-900 mb-6 line-clamp-2 leading-tight tracking-tight group-hover:text-primary transition-colors">
+                                            {item.title}
                                         </h3>
                                         
-                                        <div className="flex items-center gap-6 text-slate-400">
-                                            <div className="flex items-center gap-2">
-                                                <MessageSquare size={14} strokeWidth={2}/>
-                                                <span className="text-xs font-bold">{post.comments || 0}</span>
+                                        {!isSeries && (
+                                            <div className="flex items-center gap-6 text-slate-400">
+                                                <div className="flex items-center gap-2">
+                                                    <MessageSquare size={14} strokeWidth={2}/>
+                                                    <span className="text-xs font-bold">{item.comments || 0}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Heart size={14} strokeWidth={2} />
+                                                    <span className="text-xs font-bold">{item.reactions || 0}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 ml-auto text-slate-500">
+                                                    <Ruler size={14} strokeWidth={2}/>
+                                                    <span className="text-[10px] font-black tracking-widest uppercase">{readTime}M READ</span>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Heart size={14} strokeWidth={2} />
-                                                <span className="text-xs font-bold">{post.reactions || 0}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 ml-auto text-slate-500">
-                                                <Ruler size={14} strokeWidth={2}/>
-                                                <span className="text-[10px] font-black tracking-widest uppercase">{readTime}M READ</span>
-                                            </div>
-                                        </div>
+                                        )}
+                                        {isSeries && (
+                                            <p className="text-xs text-text-muted font-medium line-clamp-2 italic">
+                                                {item.description}
+                                            </p>
+                                        )}
                                     </div>
                                 </Link>
                             )
@@ -278,7 +301,6 @@ export default function HomePage() {
                 </div>
             </div>
             
-            {/* Minimal Footer */}
             <div className="absolute bottom-4 left-0 right-0 text-center opacity-30 select-none z-0">
                 <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900">MonoLog Publication © 2026</span>
             </div>
