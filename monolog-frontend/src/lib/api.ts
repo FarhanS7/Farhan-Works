@@ -20,6 +20,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 export const api = {
   posts: {
     getAll: () => fetchApi('/posts'),
+    getFeatured: () => fetchApi('/posts/featured'),
     getAdminList: (token: string) => fetchApi('/posts/admin/list', {
       headers: { Authorization: `Bearer ${token}` }
     }),

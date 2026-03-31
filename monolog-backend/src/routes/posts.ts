@@ -18,6 +18,7 @@ const createPostSchema = z.object({
   series_id: z.string().uuid('Invalid series ID').optional().nullable(),
   series_order: z.number().int().optional().nullable(),
   is_published: z.boolean().optional().default(false),
+  is_featured: z.boolean().optional().default(false),
 });
 
 const updatePostSchema = createPostSchema.partial();
@@ -54,12 +55,45 @@ router.get('/', async (_req, res) => {
   }
 });
 
+// Public: Get featured posts
+router.get('/featured', async (_req, res) => {
+  try {
+    const result = await query(`
+      SELECT
+        p.id, p.title, p.slug, p.excerpt, p.category, p.cover_image_url, p.published_at,
+        p.series_id, p.series_order, s.title as series_title, s.slug as series_slug,
+        COALESCE(v.views,    0)::int AS views,
+        COALESCE(c.comments, 0)::int AS comments
+      FROM posts p
+      LEFT JOIN series s ON s.id = p.series_id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) AS views
+        FROM   views
+        GROUP  BY post_id
+      ) v ON v.post_id = p.id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) AS comments
+        FROM   comments
+        WHERE  is_approved = TRUE
+        GROUP  BY post_id
+      ) c ON c.post_id = p.id
+      WHERE p.is_published = TRUE AND p.is_featured = TRUE
+      ORDER BY p.published_at DESC
+      LIMIT 10
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching featured posts:', err);
+    res.status(500).json({ message: 'Error fetching featured posts' });
+  }
+});
+
 // Admin: Get all posts (including drafts) — must come before /:id_or_slug
 router.get('/admin/list', authenticateToken, async (req, res) => {
   try {
     const result = await query(`
       SELECT 
-        p.id, p.title, p.slug, p.excerpt, p.category, p.is_published, p.published_at, p.created_at,
+        p.id, p.title, p.slug, p.excerpt, p.category, p.is_published, p.is_featured, p.published_at, p.created_at,
         p.series_id, s.title as series_title
       FROM posts p
       LEFT JOIN series s ON s.id = p.series_id
@@ -199,14 +233,14 @@ router.post('/', authenticateToken, async (req, res) => {
     return res.status(400).json({ message: parsed.error.errors[0].message });
   }
 
-  const { title, slug, content, excerpt, category, cover_image_url, seo_title, seo_description, seo_keywords, series_id, series_order, is_published } = parsed.data;
+  const { title, slug, content, excerpt, category, cover_image_url, seo_title, seo_description, seo_keywords, series_id, series_order, is_published, is_featured } = parsed.data;
   try {
     const published_at = is_published ? new Date() : null;
     const result = await query(
       `INSERT INTO posts 
-        (title, slug, content, excerpt, category, cover_image_url, seo_title, seo_description, seo_keywords, series_id, series_order, is_published, published_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
-      [title, slug, content, excerpt, category, cover_image_url || null, seo_title || null, seo_description || null, seo_keywords || null, series_id || null, series_order || null, is_published, published_at]
+        (title, slug, content, excerpt, category, cover_image_url, seo_title, seo_description, seo_keywords, series_id, series_order, is_published, published_at, is_featured) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+      [title, slug, content, excerpt, category, cover_image_url || null, seo_title || null, seo_description || null, seo_keywords || null, series_id || null, series_order || null, is_published, published_at, is_featured]
     );
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
@@ -226,7 +260,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     return res.status(400).json({ message: parsed.error.errors[0].message });
   }
 
-  const { title, slug, content, excerpt, category, cover_image_url, seo_title, seo_description, seo_keywords, series_id, series_order, is_published } = parsed.data;
+  const { title, slug, content, excerpt, category, cover_image_url, seo_title, seo_description, seo_keywords, series_id, series_order, is_published, is_featured } = parsed.data;
   try {
     const published_at = is_published ? new Date() : null;
     const result = await query(
@@ -234,9 +268,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
         title = $1, slug = $2, content = $3, excerpt = $4, category = $5, 
         cover_image_url = $6, seo_title = $7, seo_description = $8, seo_keywords = $9, 
         series_id = $10, series_order = $11, is_published = $12, 
-        published_at = COALESCE(published_at, $13), updated_at = NOW() 
-       WHERE id = $14 RETURNING *`,
-      [title, slug, content, excerpt, category, cover_image_url || null, seo_title || null, seo_description || null, seo_keywords || null, series_id || null, series_order || null, is_published, published_at, id]
+        published_at = COALESCE(published_at, $13), is_featured = $14, updated_at = NOW() 
+       WHERE id = $15 RETURNING *`,
+      [title, slug, content, excerpt, category, cover_image_url || null, seo_title || null, seo_description || null, seo_keywords || null, series_id || null, series_order || null, is_published, published_at, is_featured, id]
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Post not found' });
     res.json(result.rows[0]);

@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import Hero from "@/components/home/Hero"
 
 ChartJS.register(
     CategoryScale,
@@ -41,6 +42,7 @@ ChartJS.register(
 
 export default function HomePage() {
     const [feedItems, setFeedItems] = useState<any[]>([])
+    const [featuredPosts, setFeaturedPosts] = useState<any[]>([])
     const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState("")
@@ -48,12 +50,14 @@ export default function HomePage() {
     useEffect(() => {
         const loadHomePageData = async () => {
              try {
-                const [postsData, seriesData, statsData] = await Promise.all([
+                const [postsData, seriesData, featuredData, statsData] = await Promise.all([
                     api.posts.getAll(),
                     api.series.getAll(),
+                    api.posts.getFeatured().catch(() => []),
                     api.analytics.getPublicStats().catch(() => null)
                 ])
                 
+                setFeaturedPosts(featuredData)
                 // Merge and sort
                 const merged = [
                     ...postsData.map((p: any) => ({ ...p, type: 'post' })),
@@ -135,51 +139,7 @@ export default function HomePage() {
                     </header>
 
                     {/* Master Hero Display */}
-                    <div className="min-h-[600px] flex flex-col overflow-hidden bg-slate-900 rounded-[3rem] p-10 relative justify-between shadow-2xl border border-white/5">
-                        <div className="absolute inset-0 opacity-40 pointer-events-none overflow-hidden">
-                             <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-rose-600/30 blur-[120px] rounded-full animate-pulse"></div>
-                             <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[100px] rounded-full"></div>
-                        </div>
-                        
-                        <div className="z-10 relative max-w-xl">
-                            <div className="flex items-center gap-2 mb-8">
-                                <Sparkles size={16} className="text-rose-500" />
-                                <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em]">Featured Publication</span>
-                            </div>
-                            <h1 className="text-5xl md:text-6xl text-white font-black tracking-tight leading-[0.9] mb-6">
-                                The code that <br/> <span className="text-slate-500 group-hover:text-white transition-colors">shapes the void.</span>
-                            </h1>
-                            <p className="text-slate-400 text-base font-medium leading-relaxed mb-10 max-w-md">
-                                Deep dives into modern engineering, distributed systems, and the artistic layer of software development.
-                            </p>
-                            <Link href="/posts" className="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 rounded-full font-black text-xs uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-xl group">
-                                Explore Library
-                                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                        </div>
-
-                        {/* Community Momentum stats */}
-                        <div className="flex gap-16 z-10 relative border-t border-white/10 pt-10">
-                            <div>
-                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Unique Readers</div>
-                                <div className="text-5xl text-white font-black tracking-tighter">
-                                    {(stats?.uniqueReaders || 0).toLocaleString()}
-                                </div>
-                            </div>
-                            <div>
-                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Reader Synergy</div>
-                                <div className="text-5xl text-white font-black tracking-tighter">
-                                    {stats?.engagementRate || "0.0"}<span className="text-2xl text-slate-600 ml-1 font-bold">%</span>
-                                </div>
-                            </div>
-                             <div className="hidden md:block">
-                                <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Published Works</div>
-                                <div className="text-5xl text-white font-black tracking-tighter">
-                                    {stats?.totalPosts || 0}<span className="text-2xl text-slate-600 ml-1 font-bold">+</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <Hero featuredPosts={featuredPosts} stats={stats} />
 
                     {/* Discovery Controls */}
                     <div className="flex flex-wrap items-center justify-between gap-6">

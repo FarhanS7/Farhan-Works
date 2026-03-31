@@ -28,6 +28,7 @@ function NewPostForm() {
   // COMMON STATE
   const [category, setCategory] = useState("Technology")
   const [coverImageUrl, setCoverImageUrl] = useState("")
+  const [isFeatured, setIsFeatured] = useState(false)
   
   // SINGLE POST STATE
   const [title, setTitle] = useState("")
@@ -99,7 +100,8 @@ function NewPostForm() {
         seo_title: seoTitle || title,
         seo_description: seoDescription || excerpt,
         series_id: seriesId || null,
-        is_published: isPublished
+        is_published: isPublished,
+        is_featured: isFeatured
       }, token)
       router.push("/dashboard/posts")
     } catch (err: any) {
@@ -358,6 +360,20 @@ function NewPostForm() {
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-surface border border-border rounded-[2.5rem] p-8 shadow-level-1 sticky top-8 space-y-8">
              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-text-faint">Global Settings</h3>
+             
+             {/* Featured Toggle */}
+             <div className="p-4 rounded-3xl bg-surface-muted border border-border flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Featured Post</span>
+                  <span className="text-[9px] text-text-faint">Show on Hero section</span>
+                </div>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded-lg border-border text-primary focus:ring-primary transition-all cursor-pointer"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                />
+             </div>
              
              {/* Category */}
              <div className="space-y-2">

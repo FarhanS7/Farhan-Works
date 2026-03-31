@@ -23,6 +23,7 @@ export default function EditPostPage({
   const [excerpt, setExcerpt] = useState("")
   const [content, setContent] = useState("")
   const [isPublished, setIsPublished] = useState(false)
+  const [isFeatured, setIsFeatured] = useState(false)
   
   // New fields
   const [coverImageUrl, setCoverImageUrl] = useState("")
@@ -55,6 +56,7 @@ export default function EditPostPage({
         setExcerpt(postData.excerpt || '')
         setContent(postData.content)
         setIsPublished(postData.is_published)
+        setIsFeatured(postData.is_featured || false)
         
         // Populate new fields
         setCoverImageUrl(postData.cover_image_url || "")
@@ -92,7 +94,8 @@ export default function EditPostPage({
         seo_keywords: seoKeywords,
         series_id: seriesId || null,
         series_order: seriesOrder === "" ? null : Number(seriesOrder),
-        is_published: publish
+        is_published: publish,
+        is_featured: isFeatured
       }, token)
       router.push("/dashboard/posts")
     } catch (err: any) {
@@ -234,7 +237,7 @@ export default function EditPostPage({
               {/* Status */}
               <div className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-text-faint">Status</span>
-                <div>
+                <div className="flex items-center justify-between">
                   <span className={
                     isPublished
                       ? "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white border border-emerald-500 shadow-sm"
@@ -242,6 +245,19 @@ export default function EditPostPage({
                   }>
                     {isPublished ? 'Published' : 'Draft'}
                   </span>
+                  
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isFeatured"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary transition-all"
+                      checked={isFeatured}
+                      onChange={(e) => setIsFeatured(e.target.checked)}
+                    />
+                    <label htmlFor="isFeatured" className="text-[10px] font-black uppercase tracking-widest text-text-faint cursor-pointer">
+                      Featured
+                    </label>
+                  </div>
                 </div>
               </div>
 

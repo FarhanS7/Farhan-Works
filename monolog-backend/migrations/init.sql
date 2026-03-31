@@ -108,3 +108,5 @@ CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON reactions(post_id);
 CREATE INDEX IF NOT EXISTS idx_views_post_id ON views(post_id);
 CREATE INDEX IF NOT EXISTS idx_views_ip_post ON views(post_id, ip_address);
 CREATE INDEX IF NOT EXISTS idx_views_recent  ON views(post_id, ip_address, viewed_at DESC);
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_posts_is_featured ON posts(is_featured) WHERE is_featured = TRUE;
