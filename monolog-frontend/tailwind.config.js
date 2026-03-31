@@ -67,7 +67,7 @@ export default {
         'level-3': 'var(--shadow-lg)',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter Variable', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },

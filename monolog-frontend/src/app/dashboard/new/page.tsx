@@ -32,8 +32,6 @@ function NewPostForm() {
   
   // SINGLE POST STATE
   const [title, setTitle] = useState("")
-  const [slug] = useState("")
-  const [excerpt] = useState("")
   const [content, setContent] = useState("")
   const [seoTitle, setSeoTitle] = useState("")
   const [seoDescription, setSeoDescription] = useState("")
@@ -92,13 +90,13 @@ function NewPostForm() {
     try {
       await api.posts.create({
         title,
-        slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
         category,
-        excerpt,
+        excerpt: "",
         content,
         cover_image_url: coverImageUrl,
         seo_title: seoTitle || title,
-        seo_description: seoDescription || excerpt,
+        seo_description: seoDescription,
         series_id: seriesId || null,
         is_published: isPublished,
         is_featured: isFeatured

@@ -1,4 +1,5 @@
 import { NavigationRail } from "@/components/navigation-rail";
+import "@fontsource-variable/inter";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 
