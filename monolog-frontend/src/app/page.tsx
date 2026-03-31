@@ -1,269 +1,341 @@
-"use client"
+"use client";
 
-import { api } from "@/lib/api"
-import { cn } from "@/lib/utils"
-import {
-  ArcElement,
-  CategoryScale,
-  Chart as ChartJS,
-  Filler,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-} from "chart.js"
-import {
-  ArrowRight,
-  BookOpen,
-  Heart,
-  MessageSquare,
-  Ruler,
-  Search,
-  Sparkles,
-  Layers
-} from "lucide-react"
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import Hero from "@/components/home/Hero"
+import { PostCard } from "@/components/post-card";
+import { api } from "@/lib/api";
+import { ArrowRight, BookOpen, Rss, Sparkles, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    Filler,
-    ArcElement
-)
+/* ── Animated stat bubble ─────────────────────────────────── */
+function StatBubble({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center">
+      <p className="text-2xl md:text-3xl font-extrabold text-primary">
+        {value}
+      </p>
+      <p className="text-xs text-text-muted mt-0.5">{label}</p>
+    </div>
+  );
+}
 
+/* ── Category pill ────────────────────────────────────────── */
+function CategoryPill({ label, active }: { label: string; active: boolean }) {
+  return (
+    <button
+      className={
+        active
+          ? "px-4 py-1.5 rounded-full text-sm font-semibold bg-primary text-white shadow-blue transition-all"
+          : "px-4 py-1.5 rounded-full text-sm font-medium bg-surface-muted text-text-muted hover:bg-primary/10 hover:text-primary transition-all border border-border"
+      }
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ── Skeleton card ────────────────────────────────────────── */
+function SkeletonCard() {
+  return (
+    <div className="rounded-2xl border border-border overflow-hidden">
+      <div className="h-3 w-1/3 skeleton rounded m-4 mb-0" />
+      <div className="p-4 space-y-2">
+        <div className="h-5 w-5/6 skeleton rounded" />
+        <div className="h-5 w-4/6 skeleton rounded" />
+        <div className="h-4 w-full skeleton rounded mt-3" />
+        <div className="h-4 w-4/5 skeleton rounded" />
+        <div className="h-4 w-2/3 skeleton rounded" />
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
-    const [feedItems, setFeedItems] = useState<any[]>([])
-    const [featuredPosts, setFeaturedPosts] = useState<any[]>([])
-    const [stats, setStats] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
-    const [search, setSearch] = useState("")
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const loadHomePageData = async () => {
-             try {
-                const [postsData, seriesData, featuredData, statsData] = await Promise.all([
-                    api.posts.getAll(),
-                    api.series.getAll(),
-                    api.posts.getFeatured().catch(() => []),
-                    api.analytics.getPublicStats().catch(() => null)
-                ])
-                
-                setFeaturedPosts(featuredData)
-                // Merge and sort
-                const merged = [
-                    ...postsData.map((p: any) => ({ ...p, type: 'post' })),
-                    ...seriesData.map((s: any) => ({ ...s, type: 'series', published_at: s.created_at }))
-                ].sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+  useEffect(() => {
+    api.posts
+      .getAll()
+      .then(setPosts)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
-                setFeedItems(merged)
-                setStats(statsData)
-             } catch (e) {
-                console.error(e)
-             } finally {
-                setLoading(false)
-             }
-        }
-        loadHomePageData()
-    }, [])
+  const categories = [
+    "All",
+    ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean))),
+  ];
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (search.trim()) window.location.href = "/posts?q=" + encodeURIComponent(search)
-    }
+  return (
+    <>
+      {/* ── Hero ──────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-white dark:bg-[#0B1120]">
+        {/* Background decorations */}
+        <div className="absolute inset-0 hero-gradient pointer-events-none" />
+        <div
+          className="hero-blob absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full pointer-events-none"
+          aria-hidden
+        />
+        <div
+          className="hero-blob absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full pointer-events-none opacity-10"
+          aria-hidden
+        />
 
-    // Chart Data - Using Real Weekly Views
-    const lineChartData = {
-        labels: stats?.weeklyViews?.map((v: any) => v.label) || ['-', '-', '-', '-', '-', '-', '-'],
-        datasets: [{
-            data: stats?.weeklyViews?.map((v: any) => v.value) || [0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#0f172a',
-            borderWidth: 1.5,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            pointHoverBackgroundColor: '#0f172a',
-            pointHoverBorderColor: '#fff',
-            pointHoverBorderWidth: 2,
-            backgroundColor: (context: any) => {
-                const ctx = context.chart.ctx;
-                const gradient = ctx.createLinearGradient(0, 0, 0, 140);
-                gradient.addColorStop(0, 'rgba(15, 23, 42, 0.08)');
-                gradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
-                return gradient;
-            },
-        }]
-    }
+        {/* Grid pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(to right, var(--color-primary) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+          aria-hidden
+        />
 
-    if (loading) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
-                <span className="text-slate-400 font-medium animate-pulse">Initializing MonoLog...</span>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left: copy */}
+            <div className="space-y-8 animate-fade-up">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+                <Sparkles size={14} />
+                Personal knowledge base
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
+                <span className="text-surface-on">Ideas worth</span>{" "}
+                <span className="gradient-text">exploring</span>
+                <span className="text-surface-on">.</span>
+              </h1>
+
+              {/* Sub */}
+              <p className="text-lg md:text-xl text-text-muted max-w-xl leading-relaxed">
+                Deep thoughts, technical deep-dives, and meditations on the
+                future of technology. Written to be re-read, not just skimmed.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/posts"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  Browse All Posts <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/about"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-white dark:bg-surface-muted text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all"
+                >
+                  <BookOpen size={16} /> About
+                </Link>
+              </div>
+
+              {/* Stats row */}
+              <div className="flex gap-8 pt-2">
+                <StatBubble
+                  value={String(posts.length || "—")}
+                  label="Articles"
+                />
+                <div className="w-px bg-border" />
+                <StatBubble value="∞" label="Ideas" />
+                <div className="w-px bg-border" />
+                <StatBubble value="0" label="Ads" />
+              </div>
             </div>
+
+            {/* Right: floating post preview cards */}
+            <div className="hidden lg:block relative h-[440px]">
+              {/* Card stack decoration */}
+              {[
+                {
+                  top: "0%",
+                  left: "5%",
+                  rotate: "-3deg",
+                  delay: "0ms",
+                  opacity: "0.5",
+                  w: "85%",
+                },
+                {
+                  top: "5%",
+                  left: "2%",
+                  rotate: "-1.5deg",
+                  delay: "100ms",
+                  opacity: "0.75",
+                  w: "90%",
+                },
+                {
+                  top: "10%",
+                  left: "0%",
+                  rotate: "0deg",
+                  delay: "200ms",
+                  opacity: "1",
+                  w: "100%",
+                },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="absolute bg-white dark:bg-[#0F172A] rounded-2xl border border-border shadow-level-2 p-5 animate-fade-up"
+                  style={{
+                    top: s.top,
+                    left: s.left,
+                    width: s.w,
+                    transform: `rotate(${s.rotate})`,
+                    opacity: s.opacity,
+                    animationDelay: s.delay,
+                  }}
+                >
+                  {i === 2 ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                          Technology
+                        </span>
+                        <span className="text-xs text-text-faint">
+                          5 min read
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-surface-on text-lg leading-snug">
+                        The Architecture of Clarity
+                      </h3>
+                      <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
+                        What separates good systems from great ones is rarely
+                        the technology— it is the clarity of thought that shaped
+                        the design decisions.
+                      </p>
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
+                        <div className="flex items-center gap-3 text-xs text-text-faint">
+                          <span className="flex items-center gap-1">
+                            <TrendingUp size={12} /> 1.2k reads
+                          </span>
+                          <span>Mar 2026</span>
+                        </div>
+                        <ArrowRight size={14} className="text-primary" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="h-2.5 w-1/3 bg-primary/20 rounded-full" />
+                      <div className="h-4 w-5/6 bg-surface-muted dark:bg-surface-muted rounded" />
+                      <div className="h-3 w-full bg-border/60 rounded" />
+                      <div className="h-3 w-4/5 bg-border/60 rounded" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-    )
+      </section>
 
-    return (
-        <main className="min-h-screen bg-slate-50 antialiased text-slate-800 selection:bg-rose-100 selection:text-rose-900 flex flex-col items-center">
-            {/* Main Portal Container */}
-            <div className="overflow-hidden grid grid-cols-12 lg:p-10 bg-slate-50 w-full max-w-screen-2xl relative gap-8 p-6">
-                
-                {/* Texture Overlay */}
-                <div className="absolute inset-0 bg-white/40 pointer-events-none opacity-40"></div>
-
-                {/* Main Content Area */}
-                <div className="col-span-12 flex flex-col gap-10 z-10 w-full">
-                    
-                    {/* Public Header */}
-                    <header className="flex flex-wrap items-center justify-between gap-6 pb-2">
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center gap-3 group">
-                            <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:rotate-6 transition-all duration-500">
-                                <BookOpen size={22} strokeWidth={2.5} />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-2xl text-slate-900 font-black tracking-tight leading-none">MonoLog</span>
-                                <span className="text-[10px] text-slate-400 font-black tracking-widest uppercase mt-1">Reader Portal</span>
-                            </div>
-                        </Link>
-                    </header>
-
-                    {/* Master Hero Display */}
-                    <Hero featuredPosts={featuredPosts} stats={stats} />
-
-                    {/* Discovery Controls */}
-                    <div className="flex flex-wrap items-center justify-between gap-6">
-                        <div className="flex items-center gap-8">
-                            <div className="hidden sm:flex flex-col gap-0.5">
-                                <span className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em]">CURRENT PHASE</span>
-                                <span className="text-sm font-bold text-slate-900 tracking-tight">Active Learning</span>
-                            </div>
-                            
-                            <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
-                            
-                            <form onSubmit={handleSearch} className="relative group min-w-[320px]">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 size-4 group-focus-within:text-slate-900 transition-colors" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search the archives..." 
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-12 pr-5 py-3.5 bg-white rounded-3xl text-sm font-semibold text-slate-700 placeholder-slate-300 shadow-sm border border-slate-100/50 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-200 outline-none transition-all"
-                                />
-                            </form>
-                        </div>
-
-                        <div className="flex bg-slate-100/50 p-1.5 rounded-full border border-slate-100">
-                             {["All", "Philosophy", "Engineering", "Design"].map((cat, i) => (
-                                <button key={cat} className={cn(
-                                    "px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-full transition-all",
-                                    i === 0 ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                                )}>
-                                    {cat}
-                                </button>
-                             ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Horizontal Blog Archives */}
-                <div className="col-span-12 w-full mt-4 z-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {feedItems.map((item, idx) => {
-                            const isSeries = item.type === 'series';
-                            const url = isSeries ? `/blog/${item.slug}` : (item.series_slug ? `/blog/${item.series_slug}/${item.slug}` : `/blog/${item.slug}`);
-                            
-                            const wordCount = item.content ? item.content.split(/\s+/).length : 0;
-                            const readTime = Math.max(1, Math.ceil(wordCount / 200));
-
-                            return (
-                                <Link 
-                                    key={item.id + item.type} 
-                                    href={url}
-                                    className="group relative flex flex-col h-full bg-surface border border-border rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-level-3 hover:border-primary/40 hover:-translate-y-1"
-                                >
-                                    <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] mb-6 shadow-sm">
-                                        <img 
-                                            src={item.cover_image_url || "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop"} 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                                            alt={item.title}
-                                        />
-                                        <div className="absolute top-4 right-4">
-                                            {isSeries ? (
-                                                <div className="bg-primary/90 backdrop-blur-xl px-4 py-2 rounded-xl shadow-md text-white flex items-center gap-2">
-                                                    <Layers size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">SERIES</span>
-                                                </div>
-                                            ) : (
-                                                <div className="bg-white/90 backdrop-blur-xl p-2.5 rounded-full shadow-md text-rose-500 hover:text-rose-600 hover:scale-110 transition-all cursor-pointer">
-                                                    <Heart size={18} className="fill-current" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="absolute bottom-4 left-4">
-                                            <div className="bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black text-white uppercase tracking-[0.2em] border border-white/10">
-                                                {isSeries ? (item.posts?.length || item.post_count || 0) + ' MODULES' : (item.category || "General")}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="px-2 pb-6">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <span className="text-rose-600 text-[11px] font-black uppercase tracking-[0.2em]">
-                                                {new Date(item.published_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                            </span>
-                                            <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
-                                            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                                {isSeries ? "Structured Curriculum" : (idx === 0 ? "Latest Arrival" : "Essential Read")}
-                                            </span>
-                                        </div>
-                                        
-                                        <h3 className="text-2xl font-black text-slate-900 mb-6 line-clamp-2 leading-tight tracking-tight group-hover:text-primary transition-colors">
-                                            {item.title}
-                                        </h3>
-                                        
-                                        {!isSeries && (
-                                            <div className="flex items-center gap-6 text-slate-400">
-                                                <div className="flex items-center gap-2">
-                                                    <MessageSquare size={14} strokeWidth={2}/>
-                                                    <span className="text-xs font-bold">{item.comments || 0}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Heart size={14} strokeWidth={2} />
-                                                    <span className="text-xs font-bold">{item.reactions || 0}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 ml-auto text-slate-500">
-                                                    <Ruler size={14} strokeWidth={2}/>
-                                                    <span className="text-[10px] font-black tracking-widest uppercase">{readTime}M READ</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {isSeries && (
-                                            <p className="text-xs text-text-muted font-medium line-clamp-2 italic">
-                                                {item.description}
-                                            </p>
-                                        )}
-                                    </div>
-                                </Link>
-                            )
-                        })}
-                    </div>
-                </div>
+      {/* ── Latest Posts ──────────────────────────────────── */}
+      <section className="bg-surface-alt dark:bg-[#0F172A] border-t border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20">
+          {/* Section header */}
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+              <div className="flex items-center gap-2 text-primary text-sm font-semibold mb-2">
+                <Rss size={15} />
+                Latest
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-surface-on tracking-tight">
+                Recent Articles
+              </h2>
             </div>
-            
-            <div className="absolute bottom-4 left-0 right-0 text-center opacity-30 select-none z-0">
-                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-900">MonoLog Publication © 2026</span>
+            <Link
+              href="/posts"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover transition-colors"
+            >
+              View all posts <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          {/* Category pills (non-interactive, only visual when there are posts) */}
+          {!loading && posts.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-8">
+              {categories.slice(0, 6).map((c, i) => (
+                <CategoryPill key={c} label={c} active={i === 0} />
+              ))}
             </div>
-        </main>
-    )
+          )}
+
+          {/* Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="py-12 text-center">
+              <p className="text-error font-medium">Could not load posts.</p>
+              <p className="text-text-muted text-sm mt-1">{error}</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="py-20 text-center">
+              <BookOpen size={40} className="text-text-faint mx-auto mb-3" />
+              <p className="text-text-muted">No posts yet. Check back soon.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posts.slice(0, 6).map((post) => (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  title={post.title}
+                  excerpt={post.excerpt || ""}
+                  date={new Date(post.published_at).toLocaleDateString(
+                    undefined,
+                    {
+                      month: "short",
+                      day: "2-digit",
+                      year: "numeric",
+                    },
+                  )}
+                  readTime={`${Math.max(1, Math.ceil((post.content || post.excerpt || "").split(" ").length / 200))} min read`}
+                  views={parseInt(post.views) || 0}
+                  comments={parseInt(post.comments) || 0}
+                  category={post.category || "Uncategorized"}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Show-more link if more than 6 posts */}
+          {posts.length > 6 && (
+            <div className="text-center mt-12">
+              <Link
+                href="/posts"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-white dark:bg-surface-muted text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all"
+              >
+                See all {posts.length} articles <ArrowRight size={15} />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── CTA banner ────────────────────────────────────── */}
+      <section className="bg-primary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white">
+              Stay in the loop.
+            </h2>
+            <p className="text-primary-container/80 mt-1 text-sm md:text-base">
+              New deep-dives and essays — no noise, just signal.
+            </p>
+          </div>
+          <Link
+            href="/posts"
+            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-primary font-semibold text-sm hover:bg-primary-container transition-all shadow-md"
+          >
+            <BookOpen size={16} /> Start Reading
+          </Link>
+        </div>
+      </section>
+    </>
+  );
 }

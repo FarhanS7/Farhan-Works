@@ -1,67 +1,76 @@
-"use client"
+"use client";
 
-import { PostCard } from "@/components/post-card"
-import { api } from "@/lib/api"
-import { BookOpen, Search, SlidersHorizontal } from "lucide-react"
-import { useSearchParams } from "next/navigation"
-import { Suspense, useEffect, useRef, useState } from "react"
+import { PostCard } from "@/components/post-card";
+import { api } from "@/lib/api";
+import { BookOpen, Search, SlidersHorizontal } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 /* ── Skeleton ─────────────────────────────────────────────── */
 function SkeletonCard() {
   return (
-    <div className="bento-card bg-surface p-6 space-y-4">
-      <div className="flex justify-between">
-        <div className="h-3 w-20 skeleton rounded-full" />
-        <div className="h-3 w-16 skeleton rounded-full" />
-      </div>
-      <div className="h-6 w-5/6 skeleton rounded" />
-      <div className="h-4 w-full skeleton rounded mt-2" />
-      <div className="flex justify-between pt-4 border-t border-border mt-auto">
-        <div className="h-3 w-16 skeleton rounded" />
-        <div className="h-3 w-20 skeleton rounded" />
+    <div className="rounded-2xl border border-border overflow-hidden bg-white dark:bg-[#0F172A]">
+      <div className="h-0.5 w-full bg-border" />
+      <div className="p-5 space-y-3">
+        <div className="flex justify-between">
+          <div className="h-3.5 w-20 skeleton rounded-full" />
+          <div className="h-3 w-16 skeleton rounded-full" />
+        </div>
+        <div className="h-5 w-5/6 skeleton rounded" />
+        <div className="h-5 w-3/4 skeleton rounded" />
+        <div className="h-4 w-full skeleton rounded mt-2" />
+        <div className="h-4 w-4/5 skeleton rounded" />
+        <div className="flex justify-between pt-3 border-t border-border mt-2">
+          <div className="h-3 w-16 skeleton rounded" />
+          <div className="h-3 w-20 skeleton rounded" />
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
 /* ── Posts list ───────────────────────────────────────────── */
 function PostsContent() {
-  const [posts,   setPosts]   = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
-  const [search,  setSearch]  = useState("")
-  const inputRef  = useRef<HTMLInputElement>(null)
-  const sp        = useSearchParams()
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const sp = useSearchParams();
 
   useEffect(() => {
-    const q = sp.get("q") || ""
-    setSearch(q)
-    if (inputRef.current) inputRef.current.value = q
-    api.posts.getAll()
+    const q = sp.get("q") || "";
+    setSearch(q);
+    if (inputRef.current) inputRef.current.value = q;
+    api.posts
+      .getAll()
       .then(setPosts)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [])
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = search
-    ? posts.filter(p =>
+    ? posts.filter((p) =>
         [p.title, p.excerpt, p.category]
           .join(" ")
           .toLowerCase()
-          .includes(search.toLowerCase())
+          .includes(search.toLowerCase()),
       )
-    : posts
+    : posts;
 
-  const categories = ["All", ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))]
-  const [activeCategory, setActiveCategory] = useState("All")
+  const categories = [
+    "All",
+    ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean))),
+  ];
+  const [activeCategory, setActiveCategory] = useState("All");
 
-  const displayed = activeCategory === "All"
-    ? filtered
-    : filtered.filter(p => p.category === activeCategory)
+  const displayed =
+    activeCategory === "All"
+      ? filtered
+      : filtered.filter((p) => p.category === activeCategory);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-14 space-y-10">
-
       {/* Page header */}
       <header className="space-y-2">
         <p className="text-primary text-sm font-semibold flex items-center gap-1.5">
@@ -79,26 +88,29 @@ function PostsContent() {
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint" size={16} />
+          <Search
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint"
+            size={16}
+          />
           <input
             ref={inputRef}
             type="search"
             placeholder="Search articles..."
             defaultValue={sp.get("q") || ""}
-            onChange={e => {
-              setSearch(e.target.value)
-              const url = new URL(window.location.href)
+            onChange={(e) => {
+              setSearch(e.target.value);
+              const url = new URL(window.location.href);
               e.target.value
                 ? url.searchParams.set("q", e.target.value)
-                : url.searchParams.delete("q")
-              window.history.replaceState({}, "", url.toString())
+                : url.searchParams.delete("q");
+              window.history.replaceState({}, "", url.toString());
             }}
-            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-border bg-surface text-surface-on placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-border bg-white dark:bg-[#0F172A] text-surface-on placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         {/* Filter icon */}
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white text-text-muted hover:border-black transition-all text-sm font-bold uppercase tracking-widest">
+        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-[#0F172A] text-text-muted hover:border-primary/40 hover:text-primary transition-all text-sm">
           <SlidersHorizontal size={15} /> Filter
         </button>
       </div>
@@ -106,14 +118,14 @@ function PostsContent() {
       {/* Category pills */}
       {!loading && posts.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {categories.slice(0, 8).map(cat => (
+          {categories.slice(0, 8).map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={
                 activeCategory === cat
-                  ? "px-4 py-1.5 rounded-full text-[10px] font-black bg-black text-white transition-all uppercase tracking-widest"
-                  : "px-4 py-1.5 rounded-full text-[10px] font-bold bg-surface text-text-muted border border-border hover:border-surface-on transition-all uppercase tracking-widest"
+                  ? "px-4 py-1.5 rounded-full text-xs font-semibold bg-primary text-white shadow-blue transition-all"
+                  : "px-4 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-[#0F172A] text-text-muted border border-border hover:border-primary/40 hover:text-primary transition-all"
               }
             >
               {cat}
@@ -125,10 +137,12 @@ function PostsContent() {
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : error ? (
-        <div className="py-12 rounded-2xl border border-error bg-surface text-center">
+        <div className="py-12 rounded-2xl border border-error/20 bg-error/5 text-center">
           <p className="text-error font-medium">Failed to load posts</p>
           <p className="text-sm text-text-muted mt-1">{error}</p>
         </div>
@@ -144,42 +158,47 @@ function PostsContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayed.map(post => (
+          {displayed.map((post) => (
             <PostCard
               key={post.id}
               id={post.id}
               title={post.title}
               excerpt={post.excerpt || ""}
               date={new Date(post.published_at).toLocaleDateString(undefined, {
-                month: "short", day: "2-digit", year: "numeric",
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
               })}
               readTime={`${Math.max(1, Math.ceil((post.content || post.excerpt || "").split(" ").length / 200))} min read`}
               views={parseInt(post.views) || 0}
               comments={parseInt(post.comments) || 0}
               category={post.category || "Uncategorized"}
-              coverImageUrl={post.cover_image_url}
             />
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export default function PostsPage() {
   return (
-    <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
-        <div className="space-y-2 mb-10">
-          <div className="h-3.5 w-24 skeleton rounded" />
-          <div className="h-10 w-64 skeleton rounded" />
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+          <div className="space-y-2 mb-10">
+            <div className="h-3.5 w-24 skeleton rounded" />
+            <div className="h-10 w-64 skeleton rounded" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 skeleton rounded-2xl" />
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1,2,3].map(i => <div key={i} className="h-64 skeleton rounded-2xl" />)}
-        </div>
-      </div>
-    }>
+      }
+    >
       <PostsContent />
     </Suspense>
-  )
+  );
 }

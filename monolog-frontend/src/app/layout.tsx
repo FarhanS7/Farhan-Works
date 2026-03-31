@@ -10,13 +10,24 @@ import { MainContent } from "@/components/main-content";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  display: "swap",          // prevents invisible text during font load (FOIT → FOUT)
+  display: "swap", // prevents invisible text during font load (FOIT → FOUT)
   weight: ["400", "500", "600", "700"],
+  preload: true, // preload critical font for faster rendering
+  fallback: [
+    // better fallback chain for more consistent layout
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "system-ui",
+    "Segoe UI",
+    "Roboto",
+    "sans-serif",
+  ],
 });
 
 export const metadata: Metadata = {
   title: "MonoLog – Personal Insight Blog",
-  description: "A minimal, high-performance personal publishing platform for distraction-free reading.",
+  description:
+    "A minimal, high-performance personal publishing platform for distraction-free reading.",
 };
 
 // Resolve the API origin at build time so we can preconnect to it.
@@ -32,6 +43,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Font optimization */}
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+
         {/* Warm up the TCP+TLS connection to the backend before the first API call */}
         {apiOrigin && <link rel="preconnect" href={apiOrigin} />}
       </head>
@@ -43,9 +62,7 @@ export default function RootLayout({
         <NavigationRail />
 
         {/* Page content – conditional padding inside wrapper */}
-        <MainContent>
-          {children}
-        </MainContent>
+        <MainContent>{children}</MainContent>
       </body>
     </html>
   );

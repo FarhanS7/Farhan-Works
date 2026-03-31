@@ -1,32 +1,33 @@
-import { ArrowUpRight } from "lucide-react"
-import Link from "next/link"
+import { ArrowUpRight, Clock, Eye, MessageCircle } from "lucide-react";
+import Link from "next/link";
 
 interface PostCardProps {
-  id: string
-  title: string
-  excerpt: string
-  date: string
-  readTime: string
-  views: number
-  comments: number
-  category: string
-  coverImageUrl?: string
-  series_slug?: string
+  id: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  readTime: string;
+  views: number;
+  comments: number;
+  category: string;
 }
 
 /* ── Category colour mapping ──────────────────────────────── */
 const categoryColour: Record<string, string> = {
-  technology: "bg-surface-muted border-primary text-primary shadow-sm",
-  ideas:      "bg-surface-muted border-sky-500 text-sky-600 shadow-sm",
-  design:     "bg-surface-muted border-rose-500 text-rose-600 shadow-sm",
-  code:       "bg-surface-muted border-slate-700 text-slate-800 shadow-sm",
-}
+  technology:
+    "bg-blue-50  border-blue-200  text-blue-700  dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300",
+  ideas:
+    "bg-violet-50 border-violet-200 text-violet-700 dark:bg-violet-900/20 dark:border-violet-800 dark:text-violet-300",
+  design:
+    "bg-pink-50   border-pink-200  text-pink-700  dark:bg-pink-900/20  dark:border-pink-800  dark:text-pink-300",
+  code: "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300",
+};
 
 function getCategoryClasses(category: string) {
   return (
     categoryColour[category.toLowerCase()] ??
-    "bg-surface-muted border-border text-surface-on"
-  )
+    "bg-primary/8 border-primary/20 text-primary dark:bg-primary/10"
+  );
 }
 
 export function PostCard({
@@ -38,69 +39,59 @@ export function PostCard({
   views,
   comments,
   category,
-  coverImageUrl,
-  series_slug,
 }: PostCardProps) {
-  // Navigate to nested URL if series exists, else catch-all blog URL
-  const postUrl = series_slug ? `/blog/${series_slug}/${id}` : `/blog/${id}`;
-
   return (
-    <Link href={postUrl} className="group block h-full">
-      <article className="bento-card card-hover flex flex-col h-full bg-surface hover:bg-surface-muted overflow-hidden">
-        {coverImageUrl && (
-          <div className="h-48 w-full overflow-hidden border-b border-border">
-            <img 
-              src={coverImageUrl} 
-              alt={title} 
-              className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" 
-            />
-          </div>
-        )}
-        <div className="p-6 sm:p-8 flex flex-col flex-1">
-          {/* Category Prefix */}
-          <div className="flex flex-col mb-6">
-            <span className="text-[10px] font-bold text-text-faint tracking-[0.2em] mb-1 opacity-60 uppercase">
-              // {category}
+    <Link href={`/post/${id}`} className="group block h-full">
+      <article className="card-hover flex flex-col h-full bg-white dark:bg-[#0F172A] rounded-2xl border border-border hover:border-primary/30 shadow-level-1 overflow-hidden transition-all duration-250">
+        {/* Top accent bar */}
+        <div className="h-0.5 w-full bg-gradient-to-r from-primary via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        <div className="flex flex-col flex-1 p-5">
+          {/* Header row: category + date */}
+          <div className="flex items-center justify-between mb-3">
+            <span
+              className={
+                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border " +
+                getCategoryClasses(category)
+              }
+            >
+              {category}
             </span>
-            <div className="flex items-center justify-between">
-              <span
-                className={
-                  "inline-flex items-center px-3 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest " +
-                  getCategoryClasses(category)
-                }
-              >
-                {category}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Title */}
-        <h2 className="text-xl sm:text-2xl font-black text-surface-on tracking-tighter leading-[1.1] mb-4 line-clamp-2">
-          {title}
-        </h2>
-
-        {/* Excerpt */}
-        <p className="flex-1 text-sm text-text-muted leading-relaxed line-clamp-3 mb-8">
-          {excerpt}
-        </p>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-6 border-t border-border mt-auto">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-bold text-text-faint uppercase tracking-wider">
+            <span className="flex items-center gap-1 text-xs text-text-faint">
+              <Clock size={11} />
               {date}
             </span>
-            <span className="text-[10px] font-black text-surface-on uppercase tracking-tighter">
-              {readTime}
-            </span>
           </div>
-          
-          <div className="circle-btn bg-surface-on text-surface group-hover:scale-110 shadow-lg">
-            <ArrowUpRight size={18} strokeWidth={3} />
+
+          {/* Title */}
+          <h2 className="text-base font-bold text-surface-on group-hover:text-primary transition-colors leading-snug line-clamp-2 mb-2">
+            {title}
+          </h2>
+
+          {/* Excerpt */}
+          <p className="flex-1 text-sm text-text-muted leading-relaxed line-clamp-3 mb-4">
+            {excerpt}
+          </p>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-border mt-auto">
+            <div className="flex items-center gap-3 text-xs text-text-faint">
+              <span className="flex items-center gap-1">
+                <Eye size={12} />
+                {views.toLocaleString()}
+              </span>
+              <span className="flex items-center gap-1">
+                <MessageCircle size={12} />
+                {comments}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+              {readTime}
+              <ArrowUpRight size={13} />
+            </div>
           </div>
         </div>
       </article>
     </Link>
-  )
+  );
 }

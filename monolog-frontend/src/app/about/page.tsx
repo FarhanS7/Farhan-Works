@@ -1,43 +1,52 @@
-import { ArrowRight, BookOpen, Code2, Github, Lightbulb, Rss, Twitter } from "lucide-react"
-import Link from "next/link"
+import {
+  ArrowRight,
+  BookOpen,
+  Code2,
+  Github,
+  Lightbulb,
+  Rss,
+  Twitter,
+} from "lucide-react";
+import Link from "next/link";
 
 export const metadata = {
   title: "About – MonoLog",
   description: "About the author and philosophy of MonoLog.",
-}
+};
 
 const topics = [
   {
     icon: Code2,
     label: "Technology",
     desc: "Software, systems, and the tools that shape how we build the future.",
-    color: "bg-black text-white",
+    color: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
   },
   {
     icon: Lightbulb,
     label: "Ideas",
     desc: "Philosophy, mental models, and the mechanics of clear thinking.",
-    color: "bg-surface-muted text-black border border-border",
+    color:
+      "bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400",
   },
   {
     icon: Rss,
     label: "Deep Dives",
     desc: "Long-form explorations of topics worth understanding fully.",
-    color: "bg-stone-50 text-black border border-border",
+    color:
+      "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400",
   },
-]
+];
 
 export default function AboutPage() {
   return (
-    <div className="bg-white min-h-screen">
-
+    <div className="bg-white dark:bg-[#0B1120] min-h-screen">
       {/* ── Hero ────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border">
         <div className="absolute inset-0 hero-gradient pointer-events-none" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-20 md:py-28 relative">
           <div className="space-y-6">
             {/* Avatar */}
-            <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-blue">
               <BookOpen size={28} className="text-white" />
             </div>
 
@@ -47,8 +56,8 @@ export default function AboutPage() {
                 About MonoLog
               </h1>
               <p className="text-lg md:text-xl text-text-muted leading-relaxed max-w-2xl">
-                A personal publishing space for deep thoughts, technical deep-dives,
-                and meditations on the future of technology.
+                A personal publishing space for deep thoughts, technical
+                deep-dives, and meditations on the future of technology.
               </p>
             </div>
 
@@ -57,14 +66,14 @@ export default function AboutPage() {
               <a
                 href="#"
                 aria-label="GitHub"
-                className="p-2.5 rounded-xl border border-border bg-surface text-text-muted hover:text-surface-on hover:border-surface-on transition-all"
+                className="p-2.5 rounded-xl border border-border bg-white dark:bg-surface-muted text-text-muted hover:text-surface-on hover:border-primary/40 transition-all"
               >
                 <Github size={18} />
               </a>
               <a
                 href="#"
                 aria-label="Twitter"
-                className="p-2.5 rounded-xl border border-border bg-surface text-text-muted hover:text-surface-on hover:border-surface-on transition-all"
+                className="p-2.5 rounded-xl border border-border bg-white dark:bg-surface-muted text-text-muted hover:text-surface-on hover:border-primary/40 transition-all"
               >
                 <Twitter size={18} />
               </a>
@@ -75,21 +84,29 @@ export default function AboutPage() {
 
       {/* ── Content ─────────────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 space-y-16">
-
         {/* Topics */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-black text-black tracking-tighter uppercase">What I Write About</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-extrabold text-surface-on">
+            What I Write About
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {topics.map(({ icon: Icon, label, desc, color }) => (
               <div
                 key={label}
-                className="bento-card p-6 bg-surface-muted hover:bg-surface transition-all space-y-4"
+                className="p-5 rounded-2xl border border-border bg-white dark:bg-[#0F172A] hover:border-primary/30 hover:shadow-level-1 transition-all space-y-3"
               >
-                <div className={"w-10 h-10 rounded-full flex items-center justify-center shadow-sm " + color}>
+                <div
+                  className={
+                    "w-10 h-10 rounded-xl flex items-center justify-center " +
+                    color
+                  }
+                >
                   <Icon size={20} />
                 </div>
-                <h3 className="font-black text-black uppercase tracking-tighter">{label}</h3>
-                <p className="text-sm text-text-muted leading-relaxed">{desc}</p>
+                <h3 className="font-bold text-surface-on">{label}</h3>
+                <p className="text-sm text-text-muted leading-relaxed">
+                  {desc}
+                </p>
               </div>
             ))}
           </div>
@@ -97,21 +114,23 @@ export default function AboutPage() {
 
         {/* Philosophy */}
         <section className="space-y-5">
-          <h2 className="text-2xl font-extrabold text-surface-on">The Philosophy</h2>
+          <h2 className="text-2xl font-extrabold text-surface-on">
+            The Philosophy
+          </h2>
           <div className="space-y-4 text-text-muted leading-relaxed">
             <p>
-              Most content today is optimised for speed — quick takes, listicles, and
-              shallow overviews. MonoLog is the opposite. Every post is written to be
-              re-read.
+              Most content today is optimised for speed — quick takes,
+              listicles, and shallow overviews. MonoLog is the opposite. Every
+              post is written to be re-read.
             </p>
             <p>
-              The goal is to think carefully in public: to work through hard questions,
-              share what I&apos;ve actually learned (not just what sounds good), and leave
-              a record of ideas worth returning to.
+              The goal is to think carefully in public: to work through hard
+              questions, share what I&apos;ve actually learned (not just what
+              sounds good), and leave a record of ideas worth returning to.
             </p>
             <p>
-              If something here makes you think differently about a problem, that&apos;s
-              success.
+              If something here makes you think differently about a problem,
+              that&apos;s success.
             </p>
           </div>
 
@@ -124,12 +143,12 @@ export default function AboutPage() {
         </section>
 
         {/* Stats */}
-        <section className="rounded-2xl border border-border bg-surface-alt p-6">
+        <section className="rounded-2xl border border-border bg-surface-alt dark:bg-[#0F172A] p-6">
           <div className="grid grid-cols-3 divide-x divide-border text-center">
             {[
               { label: "Articles", value: "—" },
-              { label: "Topics",   value: "3"  },
-              { label: "Ads",      value: "0"  },
+              { label: "Topics", value: "3" },
+              { label: "Ads", value: "0" },
             ].map(({ label, value }) => (
               <div key={label} className="px-4">
                 <p className="text-2xl font-extrabold text-primary">{value}</p>
@@ -143,12 +162,12 @@ export default function AboutPage() {
         <section className="flex gap-3">
           <Link
             href="/posts"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-black text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all"
           >
             <BookOpen size={16} /> Browse All Posts <ArrowRight size={15} />
           </Link>
         </section>
       </div>
     </div>
-  )
+  );
 }

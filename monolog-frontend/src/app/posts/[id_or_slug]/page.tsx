@@ -1,39 +1,115 @@
-"use client"
+import { CommentSection } from "@/components/comment-section";
+import { ReadingProgress } from "@/components/post/reading-progress";
+import { ViewTracker } from "@/components/post/view-tracker";
+import { Reactions } from "@/components/reactions";
+import { api } from "@/lib/api";
+import DOMPurify from "dompurify";
+import {
+  ArrowLeft,
+  BookOpen,
+  Calendar,
+  Clock,
+  Eye,
+  Layers,
+  User,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import { CommentSection } from "@/components/comment-section"
-import { Reactions } from "@/components/reactions"
-import { api } from "@/lib/api"
-import DOMPurify from "dompurify"
-import { ArrowLeft, BookOpen, Calendar, Clock, Eye, User, Layers } from "lucide-react"
-import Link from "next/link"
-import * as React from "react"
-import { useEffect, useState } from "react"
-
-/* ── Reading progress bar ─────────────────────────────────── */
-function ReadingProgress() {
-  const [pct, setPct] = useState(0)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement
-      const total = scrollHeight - clientHeight
-      setPct(total > 0 ? Math.round((scrollTop / total) * 100) : 0)
-    }
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
-  return (
-    <div className="fixed top-16 inset-x-0 h-0.5 z-40 bg-border">
-      <div
-        className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-100"
-        style={{ width: pct + "%" }}
-      />
-    </div>
-  )
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  published_at: string;
+  updated_at: string;
+  cover_image_url?: string;
+  category?: string;
+  series_title?: string;
+  series_slug?: string;
+  excerpt?: string;
+  seo_title?: string;
+  seo_description?: string;
+  series_nav?: {
+    all: Array<{ id: string; title: string; slug: string }>;
+    prev?: { title: string; slug: string };
+    next?: { title: string; slug: string };
+  };
 }
 
-/* ── Skeleton loader ──────────────────────────────────────── */
+// Generate static params for all posts
+export async function generateStaticParams() {
+  try {
+    const posts = await api.posts.getAll();
+    return posts.map((post: any) => ({
+      id_or_slug: post.slug || post.id.toString(),
+    }));
+  } catch (error) {
+    console.error("Error generating static params:", error);
+    return [];
+  }
+}
+
+// Generate dynamic metadata for SEO
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id_or_slug: string }>;
+}) {
+  const { id_or_slug } = await params;
+
+  try {
+    const post = await api.posts.getOne(id_or_slug);
+
+    return {
+      title: post.seo_title || `${post.title} | MonoLog`,
+      description:
+        post.seo_description || post.excerpt || `Read ${post.title} on MonoLog`,
+      openGraph: {
+        title: post.seo_title || post.title,
+        description: post.seo_description || post.excerpt,
+        images: post.cover_image_url
+          ? [
+              {
+                url: post.cover_image_url,
+                width: 1200,
+                height: 630,
+                alt: post.title,
+              },
+            ]
+          : [],
+        type: "article",
+        publishedTime: post.published_at,
+        modifiedTime: post.updated_at || post.published_at,
+        authors: ["MonoLogue"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: post.seo_title || post.title,
+        description: post.seo_description || post.excerpt,
+        images: post.cover_image_url ? [post.cover_image_url] : [],
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+      alternates: {
+        canonical: `/posts/${post.slug}`,
+      },
+    };
+  } catch (error) {
+    return {
+      title: "Post Not Found | MonoLog",
+      description: "The requested post could not be found.",
+    };
+  }
+}
+
+// Enable ISR - revalidate every hour
+export const revalidate = 3600;
+
+/* ── Skeleton loader component ──────────────────────────────────────── */
 function PostSkeleton() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8">
@@ -43,120 +119,97 @@ function PostSkeleton() {
         <div className="h-8 w-4/5 skeleton rounded" />
       </div>
       <div className="flex gap-4">
-        {[1,2,3].map(i => <div key={i} className="h-4 w-20 skeleton rounded" />)}
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-4 w-20 skeleton rounded" />
+        ))}
       </div>
       <div className="space-y-3 pt-4">
-        {[1,2,3,4,5,6,7].map(i => (
-          <div key={i} className={"h-4 skeleton rounded " + (i % 3 === 0 ? "w-4/5" : "w-full")} />
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <div
+            key={i}
+            className={
+              "h-4 skeleton rounded " + (i % 3 === 0 ? "w-4/5" : "w-full")
+            }
+          />
         ))}
       </div>
     </div>
-  )
+  );
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-export default function PostPage({
+/* ═══════════════════════════════════════════════════════════════════ */
+export default async function PostPage({
   params,
 }: {
-  params: Promise<{ id_or_slug: string }>
+  params: Promise<{ id_or_slug: string }>;
 }) {
-  const [post,    setPost]    = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
-  const [views,   setViews]   = useState<number | string>("…")
+  const { id_or_slug } = await params;
 
-  const { id_or_slug } = React.use(params)
+  let post: Post;
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await api.posts.getOne(id_or_slug)
-        // Sanitize HTML content to prevent XSS from injected markup
-        const sanitized = DOMPurify.sanitize(data.content ?? '', {
-          USE_PROFILES: { html: true },
-          FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
-          FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-        })
-        setPost({ ...data, content: sanitized })
-        const analytics = await api.analytics.recordView(data.id)
-        setViews(analytics.views)
-      } catch (e: any) {
-        setError(e.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [id_or_slug])
+  try {
+    // Server-side data fetching
+    post = await api.posts.getOne(id_or_slug);
 
-  if (loading) return <PostSkeleton />
+    // Sanitize HTML content to prevent XSS from injected markup
+    const sanitized = DOMPurify.sanitize(post.content ?? "", {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
+      FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover"],
+    });
+    post.content = sanitized;
+  } catch (error) {
+    notFound();
+  }
 
-  if (error) return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-24 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-error text-surface flex items-center justify-center mx-auto mb-4">
-        <BookOpen size={28} />
-      </div>
-      <h1 className="text-2xl font-bold text-surface-on mb-2">Post Not Found</h1>
-      <p className="text-text-muted mb-6">{error}</p>
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
-      >
-        <ArrowLeft size={15} /> Back to Home
-      </Link>
-    </div>
-  )
-
-  if (!post) return null
-
-  const wordCount  = (post.content || "").split(/\s+/).filter(Boolean).length
-  const readMinutes = Math.max(1, Math.ceil(wordCount / 200))
+  const wordCount = (post.content || "").split(/\s+/).filter(Boolean).length;
+  const readMinutes = Math.max(1, Math.ceil(wordCount / 200));
 
   return (
     <>
       <ReadingProgress />
-      
+
       {/* SEO/Structured Data */}
-      {post && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BlogPosting",
-              "headline": post.seo_title || post.title,
-              "description": post.seo_description || post.excerpt,
-              "image": post.cover_image_url,
-              "author": {
-                "@type": "Person",
-                "name": "MonoLogue"
-              },
-              "datePublished": post.published_at,
-              "dateModified": post.updated_at || post.published_at,
-              "mainEntityOfPage": {
-                "@type": "WebPage",
-                "@id": `https://monolog.com/posts/${post.slug}`
-              }
-            })
-          }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: post.seo_title || post.title,
+            description: post.seo_description || post.excerpt,
+            image: post.cover_image_url,
+            author: {
+              "@type": "Person",
+              name: "MonoLogue",
+            },
+            datePublished: post.published_at,
+            dateModified: post.updated_at || post.published_at,
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `https://monolog.com/posts/${post.slug}`,
+            },
+          }),
+        }}
+      />
 
       {/* ── Article header ────────────────────────────── */}
       <header className="border-b border-border bg-surface overflow-hidden">
         {post.cover_image_url && (
           <div className="w-full h-[40vh] min-h-[300px] relative overflow-hidden">
-            <img 
-              src={post.cover_image_url} 
-              alt={post.title} 
-              className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700" 
+            <Image
+              src={post.cover_image_url}
+              alt={post.title}
+              className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700"
+              fill
+              priority
+              sizes="100vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
           </div>
         )}
-        
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 space-y-6 relative">
 
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 space-y-6 relative">
           {/* Back link */}
           <div className="flex items-center justify-between">
             <Link
@@ -165,7 +218,7 @@ export default function PostPage({
             >
               <ArrowLeft size={15} /> All Articles
             </Link>
-            
+
             {/* Series Badge */}
             {post.series_title && (
               <Link
@@ -197,14 +250,16 @@ export default function PostPage({
             <span className="flex items-center gap-1.5">
               <Calendar size={14} />
               {new Date(post.published_at).toLocaleDateString(undefined, {
-                month: "long", day: "numeric", year: "numeric",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
               })}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock size={14} /> {readMinutes} min read
             </span>
             <span className="flex items-center gap-1.5">
-              <Eye size={14} /> {views.toLocaleString()} reads
+              <Eye size={14} /> <ViewTracker postId={post.id} />
             </span>
           </div>
         </div>
@@ -220,15 +275,19 @@ export default function PostPage({
                 <div className="flex items-center gap-3 text-white">
                   <Layers size={20} className="text-white/80" />
                   <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 leading-none mb-1">Learning Series</h4>
-                    <p className="text-sm font-black tracking-tight">{post.series_title}</p>
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 leading-none mb-1">
+                      Learning Series
+                    </h4>
+                    <p className="text-sm font-black tracking-tight">
+                      {post.series_title}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
                   <BookOpen size={10} /> {post.series_nav.all.length} Topics
                 </div>
               </div>
-              
+
               <div className="p-4 sm:p-8 bg-surface">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {post.series_nav.all.map((item: any, idx: number) => (
@@ -241,23 +300,33 @@ export default function PostPage({
                           : "hover:bg-surface-muted border-transparent hover:border-border"
                       }`}
                     >
-                      <span className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center text-[10px] font-black border transition-all ${
-                        item.id === post.id
-                          ? "bg-primary text-white border-primary rotate-3"
-                          : "bg-surface-muted text-text-faint border-border group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:-rotate-3"
-                      }`}>
+                      <span
+                        className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center text-[10px] font-black border transition-all ${
+                          item.id === post.id
+                            ? "bg-primary text-white border-primary rotate-3"
+                            : "bg-surface-muted text-text-faint border-border group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:-rotate-3"
+                        }`}
+                      >
                         {idx + 1}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold truncate ${
-                          item.id === post.id ? "text-primary" : "text-surface-on"
-                        }`}>
+                        <p
+                          className={`text-sm font-bold truncate ${
+                            item.id === post.id
+                              ? "text-primary"
+                              : "text-surface-on"
+                          }`}
+                        >
                           {item.title}
                         </p>
                         {item.id === post.id ? (
-                          <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest">Currently Reading</span>
+                          <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest">
+                            Currently Reading
+                          </span>
                         ) : (
-                          <span className="text-[10px] font-black text-text-faint uppercase tracking-widest group-hover:text-primary/60 transition-colors">Jump to Topic</span>
+                          <span className="text-[10px] font-black text-text-faint uppercase tracking-widest group-hover:text-primary/60 transition-colors">
+                            Jump to Topic
+                          </span>
                         )}
                       </div>
                       {item.id === post.id && (
@@ -272,28 +341,49 @@ export default function PostPage({
                 {/* Quick Prev/Next Container */}
                 <div className="mt-8 pt-8 border-t border-border flex items-center justify-between gap-6">
                   {post.series_nav.prev ? (
-                    <Link href={`/posts/${post.series_nav.prev.slug}`} className="flex-1 group flex items-center gap-4 p-4 rounded-2xl bg-surface-muted border border-border hover:border-primary/30 transition-all">
+                    <Link
+                      href={`/posts/${post.series_nav.prev.slug}`}
+                      className="flex-1 group flex items-center gap-4 p-4 rounded-2xl bg-surface-muted border border-border hover:border-primary/30 transition-all"
+                    >
                       <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center text-text-faint group-hover:text-primary transition-colors">
                         <ArrowLeft size={18} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">Previous Part</p>
-                        <p className="text-sm font-bold text-surface-on truncate">{post.series_nav.prev.title}</p>
+                        <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">
+                          Previous Part
+                        </p>
+                        <p className="text-sm font-bold text-surface-on truncate">
+                          {post.series_nav.prev.title}
+                        </p>
                       </div>
                     </Link>
-                  ) : <div className="flex-1" />}
+                  ) : (
+                    <div className="flex-1" />
+                  )}
 
                   {post.series_nav.next ? (
-                    <Link href={`/posts/${post.series_nav.next.slug}`} className="flex-1 group flex items-center gap-4 p-4 rounded-2xl bg-surface-muted border border-border hover:border-primary/30 transition-all text-right">
+                    <Link
+                      href={`/posts/${post.series_nav.next.slug}`}
+                      className="flex-1 group flex items-center gap-4 p-4 rounded-2xl bg-surface-muted border border-border hover:border-primary/30 transition-all text-right"
+                    >
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">Next Part</p>
-                        <p className="text-sm font-bold text-surface-on truncate">{post.series_nav.next.title}</p>
+                        <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">
+                          Next Part
+                        </p>
+                        <p className="text-sm font-bold text-surface-on truncate">
+                          {post.series_nav.next.title}
+                        </p>
                       </div>
                       <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center text-text-faint group-hover:text-primary transition-colors">
-                        <ArrowLeft size={18} className="translate-x-0.5 rotate-180" />
+                        <ArrowLeft
+                          size={18}
+                          className="translate-x-0.5 rotate-180"
+                        />
                       </div>
                     </Link>
-                  ) : <div className="flex-1" />}
+                  ) : (
+                    <div className="flex-1" />
+                  )}
                 </div>
               </div>
             </div>
@@ -309,7 +399,6 @@ export default function PostPage({
       {/* ── Reactions + comments ──────────────────────── */}
       <div className="border-t border-border bg-surface-muted">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-12">
-
           {/* Reactions */}
           <section>
             <h3 className="text-xs font-bold text-text-faint uppercase tracking-widest mb-4">
@@ -339,5 +428,5 @@ export default function PostPage({
         </div>
       </div>
     </>
-  )
+  );
 }
