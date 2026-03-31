@@ -35,8 +35,8 @@ export function PostCard({
   excerpt,
   date,
   readTime,
-  views,
-  comments,
+  views: _views,
+  comments: _comments,
   category,
   coverImageUrl,
   series_slug,
@@ -60,7 +60,7 @@ export function PostCard({
           {/* Category Prefix */}
           <div className="flex flex-col mb-6">
             <span className="text-[10px] font-bold text-text-faint tracking-[0.2em] mb-1 opacity-60 uppercase">
-              // {category}
+              {'// '}{category}
             </span>
             <div className="flex items-center justify-between">
               <span

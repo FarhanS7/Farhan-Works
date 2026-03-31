@@ -1,10 +1,8 @@
 "use client"
 
 import { api } from "@/lib/api"
-import { 
-  ArrowLeft, 
+import {
   BookOpen, 
-  Calendar, 
   Clock, 
   ChevronRight, 
   Layers, 
@@ -82,7 +80,7 @@ export default function SeriesPage({
         <X size={40} />
       </div>
       <h1 className="text-3xl font-black text-surface-on mb-4">Series Not Found</h1>
-      <p className="text-text-muted mb-8">The learning path you're looking for might have been moved or deleted.</p>
+      <p className="text-text-muted mb-8">The learning path you&apos;re looking for might have been moved or deleted.</p>
       <Link href="/posts" className="px-8 py-4 rounded-2xl bg-primary text-white font-black hover:shadow-lg hover:shadow-primary/20 transition-all">
         Back to all posts
       </Link>

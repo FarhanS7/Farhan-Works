@@ -406,7 +406,7 @@ export default function DashboardPage() {
                                                 <div className="text-sm font-bold text-slate-900 truncate group-hover:text-rose-600 transition-colors uppercase tracking-tight">{comment.author_name}</div>
                                                 {!comment.is_approved && <div className="w-2 h-2 bg-rose-500 rounded-full shadow-sm shadow-rose-200"></div>}
                                             </div>
-                                            <div className="text-xs text-slate-400 truncate font-medium">"{comment.content}"</div>
+                                            <div className="text-xs text-slate-400 truncate font-medium">&ldquo;{comment.content}&rdquo;</div>
                                         </div>
                                     </div>
                                 )) : (

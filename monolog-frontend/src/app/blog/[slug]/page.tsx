@@ -1,7 +1,7 @@
 "use client"
 
 import { api } from "@/lib/api"
-import { ArrowLeft, BookOpen, Calendar, Clock, Eye, User, Layers, ChevronRight } from "lucide-react"
+import { ArrowLeft, Calendar, Clock } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useEffect, useState } from "react"
@@ -22,7 +22,7 @@ export default function CatchAllBlogPage({
         // Try series first
         await api.series.getOne(slug)
         setType("series")
-      } catch (e) {
+      } catch (_e) {
         // If not series, must be single post
         setType("post")
       }
@@ -58,7 +58,7 @@ function SinglePostView({ slug }: { slug: string }) {
       try {
         const data = await api.posts.getOne(slug)
         setPost(data)
-      } catch (e) {
+      } catch (_e) {
         setPost(null)
       } finally {
         setLoading(false)

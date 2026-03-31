@@ -1,18 +1,8 @@
 import { NavigationRail } from "@/components/navigation-rail";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 
 import { MainContent } from "@/components/main-content";
-
-// Explicitly request only the weights used in the UI.
-// next/font downloads and self-hosts these — no third-party font request at runtime.
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",          // prevents invisible text during font load (FOIT → FOUT)
-  weight: ["400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "MonoLog – Personal Insight Blog",
@@ -36,7 +26,7 @@ export default function RootLayout({
         {apiOrigin && <link rel="preconnect" href={apiOrigin} />}
       </head>
       <body
-        className={`${inter.variable} font-sans antialiased bg-surface text-surface-on selection:bg-primary selection:text-surface`}
+        className="font-sans antialiased bg-surface text-surface-on selection:bg-primary selection:text-surface"
         suppressHydrationWarning
       >
         {/* Top navbar */}

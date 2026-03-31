@@ -1,7 +1,7 @@
 "use client"
 
 import { api } from "@/lib/api"
-import { ArrowLeft, BookOpen, Calendar, Clock, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, BookOpen, Calendar } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { useEffect, useState } from "react"

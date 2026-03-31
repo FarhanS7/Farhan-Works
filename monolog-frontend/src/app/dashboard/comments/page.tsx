@@ -161,7 +161,7 @@ function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
           target="_blank"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-primary hover:bg-surface-muted transition-all"
         >
-          on "{comment.post_title}"
+          on &ldquo;{comment.post_title}&rdquo;
           <ExternalLink size={12} />
         </Link>
       </div>
@@ -169,7 +169,7 @@ function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
       {/* Content */}
       <div className="px-4 py-3 rounded-xl bg-surface border border-border">
         <p className="text-sm text-text-muted italic leading-relaxed">
-          "{comment.content}"
+          &ldquo;{comment.content}&rdquo;
         </p>
       </div>
 

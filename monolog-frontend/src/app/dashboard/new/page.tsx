@@ -32,8 +32,8 @@ function NewPostForm() {
   
   // SINGLE POST STATE
   const [title, setTitle] = useState("")
-  const [slug, setSlug] = useState("")
-  const [excerpt, setExcerpt] = useState("")
+  const [slug] = useState("")
+  const [excerpt] = useState("")
   const [content, setContent] = useState("")
   const [seoTitle, setSeoTitle] = useState("")
   const [seoDescription, setSeoDescription] = useState("")
@@ -141,7 +141,7 @@ function NewPostForm() {
         setLoading(true)
         const existing = await api.series.getOne(finalSeriesId)
         startOrder = existing.posts?.length || 0
-      } catch (err: any) {
+      } catch (_err) {
         setLoading(false)
         return alert("Failed to fetch existing series details")
       }

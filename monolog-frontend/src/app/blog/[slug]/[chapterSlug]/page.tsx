@@ -63,7 +63,6 @@ export default function ChapterPage({
   const router = useRouter()
   const [post,    setPost]    = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState<string | null>(null)
   const [views,   setViews]   = useState<number | string>("…")
 
   const { slug, chapterSlug } = React.use(params)
@@ -81,7 +80,7 @@ export default function ChapterPage({
         setPost({ ...data, content: sanitized })
         const analytics = await api.analytics.recordView(data.id)
         setViews(analytics.views)
-      } catch (e: any) {
+      } catch (_e) {
         // Redirection logic for missing chapters as per PRD
         router.push(`/blog/${slug}`)
       } finally {

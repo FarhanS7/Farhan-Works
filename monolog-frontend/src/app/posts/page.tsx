@@ -41,6 +41,7 @@ function PostsContent() {
       .then(setPosts)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const filtered = search
@@ -88,9 +89,11 @@ function PostsContent() {
             onChange={e => {
               setSearch(e.target.value)
               const url = new URL(window.location.href)
-              e.target.value
-                ? url.searchParams.set("q", e.target.value)
-                : url.searchParams.delete("q")
+              if (e.target.value) {
+                url.searchParams.set("q", e.target.value)
+              } else {
+                url.searchParams.delete("q")
+              }
               window.history.replaceState({}, "", url.toString())
             }}
             className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-border bg-surface text-surface-on placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary transition-all"

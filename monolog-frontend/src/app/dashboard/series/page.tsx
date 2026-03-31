@@ -10,7 +10,7 @@ export default function SeriesDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [series, setSeries] = useState<any[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [_error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingSeries, setEditingSeries] = useState<any>(null)
   
@@ -24,6 +24,7 @@ export default function SeriesDashboard() {
 
   useEffect(() => {
     loadSeries()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadSeries = async () => {

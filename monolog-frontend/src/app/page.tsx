@@ -15,13 +15,11 @@ import {
   Tooltip,
 } from "chart.js"
 import {
-  ArrowRight,
   BookOpen,
   Heart,
   MessageSquare,
   Ruler,
   Search,
-  Sparkles,
   Layers
 } from "lucide-react"
 import Link from "next/link"
@@ -80,29 +78,7 @@ export default function HomePage() {
         if (search.trim()) window.location.href = "/posts?q=" + encodeURIComponent(search)
     }
 
-    // Chart Data - Using Real Weekly Views
-    const lineChartData = {
-        labels: stats?.weeklyViews?.map((v: any) => v.label) || ['-', '-', '-', '-', '-', '-', '-'],
-        datasets: [{
-            data: stats?.weeklyViews?.map((v: any) => v.value) || [0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#0f172a',
-            borderWidth: 1.5,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            pointHoverBackgroundColor: '#0f172a',
-            pointHoverBorderColor: '#fff',
-            pointHoverBorderWidth: 2,
-            backgroundColor: (context: any) => {
-                const ctx = context.chart.ctx;
-                const gradient = ctx.createLinearGradient(0, 0, 0, 140);
-                gradient.addColorStop(0, 'rgba(15, 23, 42, 0.08)');
-                gradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
-                return gradient;
-            },
-        }]
-    }
+
 
     if (loading) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
