@@ -2,59 +2,56 @@
 
 import { PostCard } from "@/components/post-card";
 import { api } from "@/lib/api";
-import { ArrowRight, BookOpen, Rss, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-/* ── Animated stat bubble ─────────────────────────────────── */
-function StatBubble({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <p className="text-2xl md:text-3xl font-extrabold text-primary">
-        {value}
-      </p>
-      <p className="text-xs text-text-muted mt-0.5">{label}</p>
-    </div>
-  );
-}
+/* ── FAQ Data ──────────────────────────────────────────────── */
+const faqData = [
+  { q: "What is no-code?", a: "No-code is a development method that allows people to build apps or websites without coding, using visual tools and drag-and-drop interfaces." },
+  { q: "What are the benefits?", a: "No-code platforms dramatically reduce development time and cost, allowing non-technical teams to build and iterate on products independently." },
+  { q: "What services do you offer?", a: "We offer full-stack no-code development, automation workflows, integrations, and ongoing maintenance for businesses of all sizes." },
+  { q: "How can I get started?", a: "Simply reach out via our contact form and we'll schedule a discovery call to understand your needs and recommend the best solution." },
+  { q: "Can I integrate with existing systems?", a: "Yes, most no-code platforms support hundreds of integrations via APIs and tools like Zapier, Make, and native connectors." },
+];
 
-/* ── Category pill ────────────────────────────────────────── */
-function CategoryPill({ label, active }: { label: string; active: boolean }) {
-  return (
-    <button
-      className={
-        active
-          ? "px-4 py-1.5 rounded-full text-sm font-semibold bg-primary text-white shadow-blue transition-all"
-          : "px-4 py-1.5 rounded-full text-sm font-medium bg-surface-muted text-text-muted hover:bg-primary/10 hover:text-primary transition-all border border-border"
-      }
-    >
-      {label}
-    </button>
-  );
-}
-
-/* ── Skeleton card ────────────────────────────────────────── */
+/* ── Skeleton Card ─────────────────────────────────────────── */
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-border overflow-hidden">
-      <div className="h-3 w-1/3 skeleton rounded m-4 mb-0" />
-      <div className="p-4 space-y-2">
-        <div className="h-5 w-5/6 skeleton rounded" />
-        <div className="h-5 w-4/6 skeleton rounded" />
-        <div className="h-4 w-full skeleton rounded mt-3" />
-        <div className="h-4 w-4/5 skeleton rounded" />
-        <div className="h-4 w-2/3 skeleton rounded" />
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ height: 175 }} className="skeleton" />
+      <div style={{ padding: 15, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="skeleton" style={{ height: 12, width: "40%" }} />
+        <div className="skeleton" style={{ height: 14, width: "85%" }} />
+        <div className="skeleton" style={{ height: 14, width: "65%" }} />
+        <div className="skeleton" style={{ height: 12, width: "100%" }} />
+        <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+          <div className="skeleton" style={{ height: 22, width: 60, borderRadius: 20 }} />
+          <div className="skeleton" style={{ height: 22, width: 60, borderRadius: 20 }} />
+        </div>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(6);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const featRef = useRef<HTMLDivElement>(null);
+  const gridHeaderRef = useRef<HTMLDivElement>(null);
+  const nlRef = useRef<HTMLDivElement>(null);
+  const faqLRef = useRef<HTMLDivElement>(null);
+  const faqRRef = useRef<HTMLDivElement>(null);
+  const laptopRef = useRef<HTMLDivElement>(null);
+
+  /* ── Fetch posts ── */
   useEffect(() => {
     api.posts
       .getAll()
@@ -63,279 +60,297 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const categories = [
-    "All",
-    ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean))),
-  ];
+  /* ── GSAP animations ── */
+  useEffect(() => {
+    let gsapMod: any;
+    let ScrollTriggerMod: any;
+    let ctx: any;
+
+    (async () => {
+      try {
+        const g = await import("gsap");
+        const s = await import("gsap/ScrollTrigger");
+        gsapMod = g.gsap || g.default;
+        ScrollTriggerMod = s.ScrollTrigger || s.default;
+        gsapMod.registerPlugin(ScrollTriggerMod);
+
+        ctx = gsapMod.context(() => {
+          // Hero badge + title + subtitle
+          const badge = heroRef.current?.querySelector(".hero-badge");
+          const h1 = heroRef.current?.querySelector("h1");
+          const sub = heroRef.current?.querySelector(".hero-sub");
+          if (badge) gsapMod.from(badge, { opacity: 0, y: -10, duration: 0.5, delay: 0.2 });
+          if (h1) gsapMod.from(h1, { opacity: 0, y: 28, duration: 0.6, delay: 0.3, ease: "power3.out" });
+          if (sub) gsapMod.from(sub, { opacity: 0, y: 18, duration: 0.5, delay: 0.45, ease: "power2.out" });
+
+          // Featured wrap
+          if (featRef.current) {
+            gsapMod.from(featRef.current, {
+              opacity: 0, y: 38, duration: 0.85, ease: "power3.out",
+              scrollTrigger: { trigger: featRef.current, start: "top 83%" },
+            });
+          }
+
+          // Laptop float
+          if (laptopRef.current) {
+            gsapMod.to(laptopRef.current, { y: -12, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
+          }
+
+          // Grid header
+          if (gridHeaderRef.current) {
+            gsapMod.from(gridHeaderRef.current, {
+              opacity: 0, y: 18, duration: 0.55, ease: "power2.out",
+              scrollTrigger: { trigger: gridHeaderRef.current, start: "top 88%" },
+            });
+          }
+
+          // Blog cards stagger
+          const cards = document.querySelectorAll(".blog-card");
+          cards.forEach((c, i) => {
+            gsapMod.from(c, {
+              opacity: 0, y: 28, duration: 0.58, ease: "power3.out",
+              delay: (i % 3) * 0.1,
+              scrollTrigger: { trigger: c, start: "top 92%" },
+            });
+          });
+
+          // Newsletter
+          if (nlRef.current) {
+            gsapMod.from(nlRef.current, {
+              opacity: 0, duration: 0.7, ease: "power2.out",
+              scrollTrigger: { trigger: nlRef.current, start: "top 80%" },
+            });
+          }
+
+          // FAQ columns
+          if (faqLRef.current) {
+            gsapMod.from(faqLRef.current, {
+              opacity: 0, x: -28, duration: 0.7, ease: "power3.out",
+              scrollTrigger: { trigger: faqLRef.current, start: "top 82%" },
+            });
+          }
+          if (faqRRef.current) {
+            gsapMod.from(faqRRef.current, {
+              opacity: 0, x: 28, duration: 0.7, ease: "power3.out", delay: 0.12,
+              scrollTrigger: { trigger: faqRRef.current, start: "top 82%" },
+            });
+          }
+
+          // Footer wordmark
+          const wm = document.querySelector(".footer-wordmark");
+          if (wm) {
+            gsapMod.from(wm, {
+              opacity: 0, y: 30, duration: 0.9, ease: "power2.out",
+              scrollTrigger: { trigger: wm, start: "top 90%" },
+            });
+          }
+        });
+      } catch (err) {
+        console.warn("GSAP not available:", err);
+      }
+    })();
+
+    return () => { ctx?.revert?.(); };
+  }, [loading]);
+
+  /* ── Cursor glow ── */
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.left = e.clientX + "px";
+        cursorRef.current.style.top = e.clientY + "px";
+      }
+    };
+    document.addEventListener("mousemove", onMove);
+    return () => document.removeEventListener("mousemove", onMove);
+  }, []);
+
+  /* ── Scroll-to-top ── */
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* ── Derived data ── */
+  const featured = posts[0];
+  const featuredDate = featured?.published_at
+    ? new Date(featured.published_at).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })
+    : "11 Jan 2022";
+  const featuredReadTime = featured
+    ? `${Math.max(1, Math.ceil((featured.content || featured.excerpt || "").split(" ").length / 200))} min read`
+    : "5 min read";
+
+  const toggleFaq = (i: number) => setOpenFaq(openFaq === i ? -1 : i);
 
   return (
     <>
-      {/* ── Hero ──────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-white dark:bg-[#0B1120]">
-        {/* Background decorations */}
-        <div className="absolute inset-0 hero-gradient pointer-events-none" />
-        <div
-          className="hero-blob absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full pointer-events-none"
-          aria-hidden
-        />
-        <div
-          className="hero-blob absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full pointer-events-none opacity-10"
-          aria-hidden
-        />
+      {/* Cursor glow (dark only) */}
+      <div ref={cursorRef} className="cursor-glow" />
 
-        {/* Grid pattern */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(to right, var(--color-primary) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-          aria-hidden
-        />
+      {/* Scroll-to-top */}
+      <button
+        className={`scroll-top ${showScrollTop ? "show" : ""}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        ↑
+      </button>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: copy */}
-            <div className="space-y-8 animate-fade-up">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
-                <Sparkles size={14} />
-                Personal knowledge base
-              </div>
+      {/* ═══ HERO ═══ */}
+      <section className="hero-section" ref={heroRef}>
+        <div className="hero-badge">✨ Latest</div>
+        <h1>Discover our Insights</h1>
+        <p className="hero-sub">Stay up-to-date with our latest blog posts.</p>
+      </section>
 
-              {/* Headline */}
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
-                <span className="text-surface-on">Ideas worth</span>{" "}
-                <span className="gradient-text">exploring</span>
-                <span className="text-surface-on">.</span>
-              </h1>
-
-              {/* Sub */}
-              <p className="text-lg md:text-xl text-text-muted max-w-xl leading-relaxed">
-                Deep thoughts, technical deep-dives, and meditations on the
-                future of technology. Written to be re-read, not just skimmed.
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/posts"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all hover:shadow-lg hover:-translate-y-0.5"
-                >
-                  Browse All Posts <ArrowRight size={16} />
-                </Link>
-                <Link
-                  href="/about"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-white dark:bg-surface-muted text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all"
-                >
-                  <BookOpen size={16} /> About
-                </Link>
-              </div>
-
-              {/* Stats row */}
-              <div className="flex gap-8 pt-2">
-                <StatBubble
-                  value={String(posts.length || "—")}
-                  label="Articles"
-                />
-                <div className="w-px bg-border" />
-                <StatBubble value="∞" label="Ideas" />
-                <div className="w-px bg-border" />
-                <StatBubble value="0" label="Ads" />
-              </div>
-            </div>
-
-            {/* Right: floating post preview cards */}
-            <div className="hidden lg:block relative h-[440px]">
-              {/* Card stack decoration */}
-              {[
-                {
-                  top: "0%",
-                  left: "5%",
-                  rotate: "-3deg",
-                  delay: "0ms",
-                  opacity: "0.5",
-                  w: "85%",
-                },
-                {
-                  top: "5%",
-                  left: "2%",
-                  rotate: "-1.5deg",
-                  delay: "100ms",
-                  opacity: "0.75",
-                  w: "90%",
-                },
-                {
-                  top: "10%",
-                  left: "0%",
-                  rotate: "0deg",
-                  delay: "200ms",
-                  opacity: "1",
-                  w: "100%",
-                },
-              ].map((s, i) => (
-                <div
-                  key={i}
-                  className="absolute bg-white dark:bg-[#0F172A] rounded-2xl border border-border shadow-level-2 p-5 animate-fade-up"
-                  style={{
-                    top: s.top,
-                    left: s.left,
-                    width: s.w,
-                    transform: `rotate(${s.rotate})`,
-                    opacity: s.opacity,
-                    animationDelay: s.delay,
-                  }}
-                >
-                  {i === 2 ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                          Technology
-                        </span>
-                        <span className="text-xs text-text-faint">
-                          5 min read
-                        </span>
-                      </div>
-                      <h3 className="font-bold text-surface-on text-lg leading-snug">
-                        The Architecture of Clarity
-                      </h3>
-                      <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
-                        What separates good systems from great ones is rarely
-                        the technology— it is the clarity of thought that shaped
-                        the design decisions.
-                      </p>
-                      <div className="flex items-center justify-between pt-2 border-t border-border">
-                        <div className="flex items-center gap-3 text-xs text-text-faint">
-                          <span className="flex items-center gap-1">
-                            <TrendingUp size={12} /> 1.2k reads
-                          </span>
-                          <span>Mar 2026</span>
-                        </div>
-                        <ArrowRight size={14} className="text-primary" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="h-2.5 w-1/3 bg-primary/20 rounded-full" />
-                      <div className="h-4 w-5/6 bg-surface-muted dark:bg-surface-muted rounded" />
-                      <div className="h-3 w-full bg-border/60 rounded" />
-                      <div className="h-3 w-4/5 bg-border/60 rounded" />
-                    </div>
-                  )}
+      {/* ═══ FEATURED ═══ */}
+      <div className="featured-wrap" ref={featRef}>
+        <div className="featured-card">
+          <div className="featured-image">
+            <div className="feat-img-bg">
+              <div className="laptop-mock" ref={laptopRef}>
+                <div className="laptop-screen">
+                  <strong>
+                    Empower Your Team with<br />Seamless Collaboration
+                  </strong>
+                  <p style={{ fontSize: 10, marginTop: 8, opacity: 0.7 }}>
+                    Dashboard · Tasks · Members · Hours
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Latest Posts ──────────────────────────────────── */}
-      <section className="bg-surface-alt dark:bg-[#0F172A] border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20">
-          {/* Section header */}
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <div>
-              <div className="flex items-center gap-2 text-primary text-sm font-semibold mb-2">
-                <Rss size={15} />
-                Latest
               </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-surface-on tracking-tight">
-                Recent Articles
-              </h2>
             </div>
+          </div>
+          <div className="featured-content">
+            <span className="tag-pill">All</span>
+            <h2>{featured?.title || "10 Tips for Successful Blogging"}</h2>
+            <p>{featured?.excerpt || "Learn how to create engaging blog content that drives traffic."}</p>
             <Link
-              href="/posts"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover transition-colors"
+              href={featured ? `/posts/${featured.id}` : "/posts"}
+              className="btn-orange"
+              style={{ width: "fit-content" }}
             >
-              View all posts <ArrowRight size={15} />
+              Discover Now <span className="arrow-c">↗</span>
             </Link>
+            <div className="progress-bar" />
+            <div className="featured-meta">
+              <div className="meta-avatar">{featured?.author?.charAt(0) || "J"}</div>
+              <div className="meta-info">
+                <div className="name">{featured?.author || "John Doe"}</div>
+                <div className="date">{featuredDate}</div>
+              </div>
+              <div className="meta-time">⏱ {featuredReadTime}</div>
+            </div>
           </div>
-
-          {/* Category pills (non-interactive, only visual when there are posts) */}
-          {!loading && posts.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-8">
-              {categories.slice(0, 6).map((c, i) => (
-                <CategoryPill key={c} label={c} active={i === 0} />
-              ))}
-            </div>
-          )}
-
-          {/* Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="py-12 text-center">
-              <p className="text-error font-medium">Could not load posts.</p>
-              <p className="text-text-muted text-sm mt-1">{error}</p>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="py-20 text-center">
-              <BookOpen size={40} className="text-text-faint mx-auto mb-3" />
-              <p className="text-text-muted">No posts yet. Check back soon.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.slice(0, 6).map((post) => (
-                <PostCard
-                  key={post.id}
-                  id={post.id}
-                  title={post.title}
-                  excerpt={post.excerpt || ""}
-                  date={new Date(post.published_at).toLocaleDateString(
-                    undefined,
-                    {
-                      month: "short",
-                      day: "2-digit",
-                      year: "numeric",
-                    },
-                  )}
-                  readTime={`${Math.max(1, Math.ceil((post.content || post.excerpt || "").split(" ").length / 200))} min read`}
-                  views={parseInt(post.views) || 0}
-                  comments={parseInt(post.comments) || 0}
-                  category={post.category || "Uncategorized"}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Show-more link if more than 6 posts */}
-          {posts.length > 6 && (
-            <div className="text-center mt-12">
-              <Link
-                href="/posts"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-white dark:bg-surface-muted text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all"
-              >
-                See all {posts.length} articles <ArrowRight size={15} />
-              </Link>
-            </div>
-          )}
         </div>
-      </section>
+      </div>
 
-      {/* ── CTA banner ────────────────────────────────────── */}
-      <section className="bg-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white">
-              Stay in the loop.
-            </h2>
-            <p className="text-primary-container/80 mt-1 text-sm md:text-base">
-              New deep-dives and essays — no noise, just signal.
-            </p>
+      {/* ═══ GRID HEADER ═══ */}
+      <div className="section-header" ref={gridHeaderRef}>
+        <h2>All Blog Post</h2>
+        <div className="sort-select">
+          Short By :
+          <div className="select-pill">Category One ▾</div>
+        </div>
+      </div>
+
+      {/* ═══ BLOG GRID ═══ */}
+      {loading ? (
+        <div className="blog-grid">
+          {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonCard key={i} />)}
+        </div>
+      ) : error ? (
+        <div style={{ padding: "0 60px", marginBottom: 46 }}>
+          <div style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 16, padding: "32px", textAlign: "center" }}>
+            <p style={{ fontWeight: 600, color: "#ef4444" }}>Could not load posts.</p>
+            <p style={{ marginTop: 4, fontSize: 13, color: "var(--tm)" }}>{error}</p>
           </div>
-          <Link
-            href="/posts"
-            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-primary font-semibold text-sm hover:bg-primary-container transition-all shadow-md"
-          >
-            <BookOpen size={16} /> Start Reading
+        </div>
+      ) : posts.length === 0 ? (
+        <div style={{ padding: "0 60px", marginBottom: 46 }}>
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: "48px", textAlign: "center", color: "var(--tm)" }}>
+            No posts yet. Check back soon.
+          </div>
+        </div>
+      ) : (
+        <div className="blog-grid">
+          {posts.slice(0, visibleCount).map((post, i) => (
+            <PostCard
+              key={post.id}
+              id={post.id}
+              title={post.title}
+              excerpt={post.excerpt || "Discover how blogging can boost your business growth."}
+              date={new Date(post.published_at).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
+              readTime={`${Math.max(1, Math.ceil((post.content || post.excerpt || "").split(" ").length / 200))} min read`}
+              category={post.category || "Uncategorized"}
+              coverImage={post.cover_image_url}
+              author={post.author || "John Doe"}
+              imgClass={`card-img-${(i % 3) + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Load More */}
+      <div className="load-more-wrap">
+        {!loading && posts.length > visibleCount ? (
+          <button className="btn-orange" onClick={() => setVisibleCount((c) => c + 6)}>
+            Load More <span className="arrow-c">↗</span>
+          </button>
+        ) : !loading && posts.length > 0 ? (
+          <Link href="/posts" className="btn-orange">
+            Load More <span className="arrow-c">↗</span>
           </Link>
+        ) : null}
+      </div>
+
+      {/* ═══ NEWSLETTER ═══ */}
+      <div className="newsletter-wrap">
+        <div className="newsletter" ref={nlRef}>
+          <div className="nl-orb1" />
+          <div className="nl-orb2" />
+          <h2>Stay Updated With Our Newslatter</h2>
+          <p>
+            Subscribe to our newsletter for the latest updates and insights
+            <br />
+            on no-code/low-code development.
+          </p>
+          <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+            <input className="newsletter-input" type="email" placeholder="Enter Your Email" />
+            <button type="submit" className="btn-orange">Join Now</button>
+          </form>
+          <p className="newsletter-legal">
+            By joining, you agree to our <a href="#">Terms and Conditions.</a>
+          </p>
         </div>
-      </section>
+      </div>
+
+      {/* ═══ FAQ ═══ */}
+      <div className="faq-section" id="contact">
+        <div className="faq-left" ref={faqLRef}>
+          <h2>Frequently Asked Questions</h2>
+          <p>Find answers to common questions about our no-code/low-code development services.</p>
+          <div className="faq-contact-label">Still have questions?</div>
+          <div className="faq-contact-sub">Contact us for further assistance.</div>
+          <a href="#contact" className="btn-orange" style={{ width: "fit-content", marginTop: 4 }}>
+            Contact <span className="arrow-c">↗</span>
+          </a>
+        </div>
+        <div className="faq-right" ref={faqRRef}>
+          {faqData.map((item, i) => (
+            <div
+              key={i}
+              className={`faq-item ${openFaq === i ? "open" : ""}`}
+              onClick={() => toggleFaq(i)}
+            >
+              <div className="faq-question">
+                {item.q}
+                <div className="faq-icon">+</div>
+              </div>
+              <div className="faq-answer">{item.a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </>
   );
 }

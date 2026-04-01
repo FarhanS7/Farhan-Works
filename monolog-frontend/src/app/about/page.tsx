@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BookOpen,
   Code2,
+  Flame,
   Github,
   Lightbulb,
   Rss,
@@ -19,85 +20,83 @@ const topics = [
     icon: Code2,
     label: "Technology",
     desc: "Software, systems, and the tools that shape how we build the future.",
-    color: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
+    color: "bg-blue-500/15 text-blue-200 border-blue-400/40",
   },
   {
     icon: Lightbulb,
     label: "Ideas",
     desc: "Philosophy, mental models, and the mechanics of clear thinking.",
-    color:
-      "bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400",
+    color: "bg-violet-500/15 text-violet-200 border-violet-400/40",
   },
   {
     icon: Rss,
     label: "Deep Dives",
     desc: "Long-form explorations of topics worth understanding fully.",
-    color:
-      "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400",
+    color: "bg-emerald-500/15 text-emerald-200 border-emerald-400/40",
   },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="bg-white dark:bg-[#0B1120] min-h-screen">
-      {/* ── Hero ────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border">
+    <div className="min-h-screen bg-canvas">
+      <section className="relative overflow-hidden border-b border-border/70">
         <div className="absolute inset-0 hero-gradient pointer-events-none" />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-20 md:py-28 relative">
-          <div className="space-y-6">
-            {/* Avatar */}
-            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-blue">
-              <BookOpen size={28} className="text-white" />
-            </div>
+        <div className="relative mx-auto max-w-5xl px-4 py-20 sm:px-6 md:py-28">
+          <div className="rounded-3xl border border-border/75 bg-surface/80 p-8 shadow-level-2 backdrop-blur-xl md:p-10">
+            <div className="space-y-6">
+              <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-blue">
+                <BookOpen size={28} className="text-white" />
+              </div>
 
-            <div className="space-y-3">
-              <p className="text-primary text-sm font-semibold">The author</p>
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-surface-on">
-                About MonoLog
-              </h1>
-              <p className="text-lg md:text-xl text-text-muted leading-relaxed max-w-2xl">
-                A personal publishing space for deep thoughts, technical
-                deep-dives, and meditations on the future of technology.
-              </p>
-            </div>
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary inline-flex items-center gap-2">
+                  <Flame size={12} />
+                  The author
+                </p>
+                <h1 className="font-display text-4xl font-semibold tracking-tight text-surface-on md:text-6xl">
+                  About MonoLog
+                </h1>
+                <p className="max-w-2xl text-lg leading-relaxed text-text-muted md:text-xl">
+                  A personal publishing space for deep thoughts, technical
+                  deep-dives, and meditations on the future of technology.
+                </p>
+              </div>
 
-            {/* Social links */}
-            <div className="flex gap-3 pt-2">
-              <a
-                href="#"
-                aria-label="GitHub"
-                className="p-2.5 rounded-xl border border-border bg-white dark:bg-surface-muted text-text-muted hover:text-surface-on hover:border-primary/40 transition-all"
-              >
-                <Github size={18} />
-              </a>
-              <a
-                href="#"
-                aria-label="Twitter"
-                className="p-2.5 rounded-xl border border-border bg-white dark:bg-surface-muted text-text-muted hover:text-surface-on hover:border-primary/40 transition-all"
-              >
-                <Twitter size={18} />
-              </a>
+              <div className="flex gap-3 pt-2">
+                <a
+                  href="#"
+                  aria-label="GitHub"
+                  className="rounded-xl border border-border/80 bg-black/20 p-2.5 text-text-muted transition-all hover:border-primary/40 hover:text-surface-on"
+                >
+                  <Github size={18} />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Twitter"
+                  className="rounded-xl border border-border/80 bg-black/20 p-2.5 text-text-muted transition-all hover:border-primary/40 hover:text-surface-on"
+                >
+                  <Twitter size={18} />
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Content ─────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 space-y-16">
-        {/* Topics */}
+      <div className="mx-auto max-w-5xl space-y-16 px-4 py-16 sm:px-6">
         <section className="space-y-6">
-          <h2 className="text-2xl font-extrabold text-surface-on">
+          <h2 className="font-display text-2xl font-semibold text-surface-on">
             What I Write About
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {topics.map(({ icon: Icon, label, desc, color }) => (
               <div
                 key={label}
-                className="p-5 rounded-2xl border border-border bg-white dark:bg-[#0F172A] hover:border-primary/30 hover:shadow-level-1 transition-all space-y-3"
+                className="space-y-3 rounded-2xl border border-border/75 bg-surface/75 p-5 transition-all hover:border-primary/35 hover:shadow-level-1"
               >
                 <div
                   className={
-                    "w-10 h-10 rounded-xl flex items-center justify-center " +
+                    "flex h-10 w-10 items-center justify-center rounded-xl border " +
                     color
                   }
                 >
@@ -112,9 +111,8 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Philosophy */}
         <section className="space-y-5">
-          <h2 className="text-2xl font-extrabold text-surface-on">
+          <h2 className="font-display text-2xl font-semibold text-surface-on">
             The Philosophy
           </h2>
           <div className="space-y-4 text-text-muted leading-relaxed">
@@ -134,16 +132,14 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Pullquote */}
-          <blockquote className="border-l-4 border-primary pl-5 py-1 my-6">
+          <blockquote className="my-6 rounded-r-xl border-l-4 border-primary bg-black/20 py-3 pl-5">
             <p className="text-lg italic text-surface-on font-medium">
               &ldquo;Writing is thinking made visible.&rdquo;
             </p>
           </blockquote>
         </section>
 
-        {/* Stats */}
-        <section className="rounded-2xl border border-border bg-surface-alt dark:bg-[#0F172A] p-6">
+        <section className="rounded-2xl border border-border/75 bg-surface/75 p-6">
           <div className="grid grid-cols-3 divide-x divide-border text-center">
             {[
               { label: "Articles", value: "—" },
@@ -158,7 +154,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* CTA */}
         <section className="flex gap-3">
           <Link
             href="/posts"

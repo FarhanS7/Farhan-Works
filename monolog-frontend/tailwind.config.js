@@ -113,8 +113,15 @@ export default {
       },
       fontFamily: {
         sans: [
-          "var(--font-inter)",
-          "Inter",
+          "var(--font-manrope)",
+          "Manrope",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+        display: [
+          "var(--font-sora)",
+          "Sora",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",

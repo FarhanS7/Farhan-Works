@@ -1,4 +1,5 @@
-import { ArrowUpRight, Clock, Eye, MessageCircle } from "lucide-react";
+"use client";
+
 import Link from "next/link";
 
 interface PostCardProps {
@@ -7,28 +8,21 @@ interface PostCardProps {
   excerpt: string;
   date: string;
   readTime: string;
-  views: number;
-  comments: number;
+  views?: number;
+  comments?: number;
   category: string;
+  coverImage?: string;
+  author?: string;
+  tags?: string[];
+  mockText?: string;
+  imgClass?: string;
 }
 
-/* ── Category colour mapping ──────────────────────────────── */
-const categoryColour: Record<string, string> = {
-  technology:
-    "bg-blue-50  border-blue-200  text-blue-700  dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300",
-  ideas:
-    "bg-violet-50 border-violet-200 text-violet-700 dark:bg-violet-900/20 dark:border-violet-800 dark:text-violet-300",
-  design:
-    "bg-pink-50   border-pink-200  text-pink-700  dark:bg-pink-900/20  dark:border-pink-800  dark:text-pink-300",
-  code: "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300",
-};
-
-function getCategoryClasses(category: string) {
-  return (
-    categoryColour[category.toLowerCase()] ??
-    "bg-primary/8 border-primary/20 text-primary dark:bg-primary/10"
-  );
-}
+const defaultMocks = [
+  "The Next Generation\nSocial Media App",
+  "REVOLUTION\nAI Platform",
+  "Analytics Dashboard\nPro Edition",
+];
 
 export function PostCard({
   id,
@@ -36,62 +30,64 @@ export function PostCard({
   excerpt,
   date,
   readTime,
-  views,
-  comments,
   category,
+  coverImage,
+  author = "John Doe",
+  tags,
+  mockText,
+  imgClass,
 }: PostCardProps) {
+  const displayTags = tags || [category, "Website", "Case Study"].slice(0, 3);
+  const idx = Math.abs(id.split("").reduce((s, c) => s + c.charCodeAt(0), 0)) % 3;
+  const imgCls = imgClass || `card-img-${(idx % 3) + 1}`;
+  const mock = mockText || defaultMocks[idx % 3];
+
   return (
-    <Link href={`/post/${id}`} className="group block h-full">
-      <article className="card-hover flex flex-col h-full bg-white dark:bg-[#0F172A] rounded-2xl border border-border hover:border-primary/30 shadow-level-1 overflow-hidden transition-all duration-250">
-        {/* Top accent bar */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-primary via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        <div className="flex flex-col flex-1 p-5">
-          {/* Header row: category + date */}
-          <div className="flex items-center justify-between mb-3">
-            <span
-              className={
-                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border " +
-                getCategoryClasses(category)
-              }
-            >
-              {category}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-text-faint">
-              <Clock size={11} />
-              {date}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-base font-bold text-surface-on group-hover:text-primary transition-colors leading-snug line-clamp-2 mb-2">
-            {title}
-          </h2>
-
-          {/* Excerpt */}
-          <p className="flex-1 text-sm text-text-muted leading-relaxed line-clamp-3 mb-4">
-            {excerpt}
-          </p>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-border mt-auto">
-            <div className="flex items-center gap-3 text-xs text-text-faint">
-              <span className="flex items-center gap-1">
-                <Eye size={12} />
-                {views.toLocaleString()}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageCircle size={12} />
-                {comments}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              {readTime}
-              <ArrowUpRight size={13} />
+    <Link href={`/posts/${id}`} className="blog-card" style={{ textDecoration: "none" }}>
+      {/* ── Image ── */}
+      <div className={`card-image ${imgCls}`}>
+        {coverImage ? (
+          <img
+            src={coverImage}
+            alt={title}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <div className="card-image-inner">
+            <div className="card-img-mock">
+              <div className="card-img-screen">{mock}</div>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* ── Body ── */}
+      <div className="card-body">
+        <div className="card-meta-top">
+          <div className="card-author">
+            <div className="author-avatar-sm">
+              {author.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div className="author-name-sm">{author}</div>
+              <div className="author-date-sm">{date}</div>
+            </div>
+          </div>
+          <div className="card-arrow">↗</div>
         </div>
-      </article>
+
+        <div className="read-time">⏱ {readTime}</div>
+        <div className="card-title">{title}</div>
+        <div className="card-desc">{excerpt}</div>
+
+        <div className="card-tags">
+          {displayTags.map((tag) => (
+            <span key={tag} className="card-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
     </Link>
   );
 }
