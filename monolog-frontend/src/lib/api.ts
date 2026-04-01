@@ -49,6 +49,12 @@ export const api = {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       }),
+    reorder: (orders: Array<{ id: string; series_order: number }>, token: string) =>
+      fetchApi("/posts/reorder", {
+        method: "POST",
+        body: JSON.stringify({ orders }),
+        headers: { Authorization: `Bearer ${token}` },
+      }),
   },
   comments: {
     getByPost: (postId: string) => fetchApi(`/comments/${postId}`),
@@ -78,6 +84,27 @@ export const api = {
       fetchApi("/reactions", {
         method: "POST",
         body: JSON.stringify({ post_id: postId, type }),
+      }),
+  },
+  series: {
+    getAll: () => fetchApi("/series"),
+    getOne: (slugOrId: string) => fetchApi(`/series/${slugOrId}`),
+    create: (data: any, token: string) =>
+      fetchApi("/series", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    update: (id: string, data: any, token: string) =>
+      fetchApi(`/series/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    delete: (id: string, token: string) =>
+      fetchApi(`/series/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       }),
   },
   analytics: {

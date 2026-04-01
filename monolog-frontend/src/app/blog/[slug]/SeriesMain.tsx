@@ -38,12 +38,13 @@ export default function SeriesPage({
       try {
         const data = await api.series.getOne(slug)
         setSeries(data)
-        
+
         // If there are posts, fetch the first one's content immediately
         if (data.posts && data.posts.length > 0) {
           setContentLoading(true)
           try {
-            const postData = await api.posts.getChapter(slug, data.posts[0].slug)
+            // Fetch the first post by its slug
+            const postData = await api.posts.getOne(data.posts[0].slug)
             // Sanitize HTML
             const sanitized = DOMPurify.sanitize(postData.content ?? '', {
               USE_PROFILES: { html: true },

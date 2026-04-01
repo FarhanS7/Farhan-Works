@@ -71,7 +71,8 @@ export default function ChapterPage({
   useEffect(() => {
     async function load() {
       try {
-        const data = await api.posts.getChapter(slug, chapterSlug)
+        // Fetch post by chapter slug (posts can be fetched by slug)
+        const data = await api.posts.getOne(chapterSlug)
         // Sanitize HTML
         const sanitized = DOMPurify.sanitize(data.content ?? '', {
           USE_PROFILES: { html: true },

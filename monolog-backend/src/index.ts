@@ -17,8 +17,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+const rawAllowedOrigins = process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN;
+const allowedOrigins = rawAllowedOrigins
+  ? rawAllowedOrigins.split(",").map((o) => o.trim())
   : ["http://localhost:3000"];
 
 // ── Security & parsing middleware ─────────────────────────────────────────────

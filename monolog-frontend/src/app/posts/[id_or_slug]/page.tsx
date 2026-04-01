@@ -1,6 +1,4 @@
 import { CommentSection } from "@/components/comment-section";
-import { ReadingProgress } from "@/components/post/reading-progress";
-import { ViewTracker } from "@/components/post/view-tracker";
 import { Reactions } from "@/components/reactions";
 import { api } from "@/lib/api";
 import DOMPurify from "dompurify";
@@ -9,7 +7,6 @@ import {
   BookOpen,
   Calendar,
   Clock,
-  Eye,
   Layers,
   User,
 } from "lucide-react";
@@ -167,8 +164,6 @@ export default async function PostPage({
 
   return (
     <>
-      <ReadingProgress />
-
       {/* SEO/Structured Data */}
       <script
         type="application/ld+json"
@@ -257,9 +252,6 @@ export default async function PostPage({
             </span>
             <span className="flex items-center gap-1.5">
               <Clock size={14} /> {readMinutes} min read
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Eye size={14} /> <ViewTracker postId={post.id} />
             </span>
           </div>
         </div>

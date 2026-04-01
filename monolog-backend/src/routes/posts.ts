@@ -164,4 +164,25 @@ router.delete("/:id", authenticateToken, async (req, res) => {
   }
 });
 
+// Admin: Batch reorder posts in a series
+router.post("/reorder", authenticateToken, async (req, res) => {
+  const { orders } = req.body;
+  if (!Array.isArray(orders)) {
+    return res.status(400).json({ message: "Orders must be an array" });
+  }
+
+  try {
+    for (const order of orders) {
+      await query("UPDATE posts SET series_order = $1 WHERE id = $2", [
+        order.series_order,
+        order.id,
+      ]);
+    }
+    res.json({ message: "Posts reordered successfully" });
+  } catch (err) {
+    console.error("Error reordering posts:", err);
+    res.status(500).json({ message: "Error reordering posts" });
+  }
+});
+
 export default router;
