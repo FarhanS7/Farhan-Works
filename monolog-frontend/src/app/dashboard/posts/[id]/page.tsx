@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { ChevronLeft, Save, Send, Trash2 } from "lucide-react";
+import { ChevronLeft, Save, Send, Trash2, Image as ImageIcon, Search, ListOrdered, Hash } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -16,12 +16,24 @@ export default function EditPostPage({
   const resolvedParams = React.use(params);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [seriesList, setSeriesList] = useState<{id: string, title: string}[]>([]);
+  
+  // Basic fields
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [category, setCategory] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [isPublished, setIsPublished] = useState(false);
+  
+  // New fields
+  const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [seriesId, setSeriesId] = useState("");
+  const [seriesOrder, setSeriesOrder] = useState(0);
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [seoKeywords, setSeoKeywords] = useState("");
+  
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,22 +43,38 @@ export default function EditPostPage({
       return;
     }
 
-    async function loadPost() {
+    async function loadData() {
       try {
-        const data = await api.posts.getAdminOne(resolvedParams.id, token!);
-        setTitle(data.title);
-        setSlug(data.slug);
-        setCategory(data.category || "");
-        setExcerpt(data.excerpt || "");
-        setContent(data.content);
-        setIsPublished(data.is_published);
+        const [postData, seriesData] = await Promise.all([
+          api.posts.getAdminOne(resolvedParams.id, token!),
+          api.series.getAll()
+        ]);
+        
+        setSeriesList(seriesData);
+        
+        // Populate post fields
+        setTitle(postData.title);
+        setSlug(postData.slug);
+        setCategory(postData.category || "");
+        setExcerpt(postData.excerpt || "");
+        setContent(postData.content);
+        setIsPublished(postData.is_published);
+        
+        // Populate new fields
+        setCoverImageUrl(postData.cover_image_url || "");
+        setSeriesId(postData.series_id || "");
+        setSeriesOrder(postData.series_order || 0);
+        setSeoTitle(postData.seo_title || "");
+        setSeoDescription(postData.seo_description || "");
+        setSeoKeywords(postData.seo_keywords || "");
+        
       } catch (err: any) {
         setError(err.message || "Failed to load post");
       } finally {
         setLoading(false);
       }
     }
-    loadPost();
+    loadData();
   }, [resolvedParams.id, router]);
 
   const handleSubmit = async (publish: boolean) => {
@@ -64,6 +92,12 @@ export default function EditPostPage({
           excerpt,
           content,
           is_published: publish,
+          cover_image_url: coverImageUrl,
+          series_id: seriesId || null,
+          series_order: seriesOrder,
+          seo_title: seoTitle,
+          seo_description: seoDescription,
+          seo_keywords: seoKeywords,
         },
         token,
       );
@@ -165,11 +199,50 @@ export default function EditPostPage({
               />
             </div>
           </div>
+
+          {/* SEO Metadata */}
+          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 p-6 space-y-6">
+            <h2 className="text-lg font-bold text-surface-on flex items-center gap-2">
+              <Search size={20} className="text-primary" /> SEO & Search Settings
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">SEO Title</label>
+                <input 
+                  type="text"
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  value={seoTitle}
+                  onChange={e => setSeoTitle(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">SEO Keywords</label>
+                <input 
+                  type="text"
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder="blog, design, code"
+                  value={seoKeywords}
+                  onChange={e => setSeoKeywords(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-text-faint">SEO Description</label>
+              <textarea 
+                className="w-full h-24 px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none"
+                placeholder="Meta description for search engines..."
+                value={seoDescription}
+                onChange={e => setSeoDescription(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Sidebar */}
         <div>
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1">
+          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 sticky top-8">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-bold text-surface-on">
                 Post Settings
@@ -194,7 +267,51 @@ export default function EditPostPage({
                 </div>
               </div>
 
-              <div className="space-y-2">
+              {/* Cover Image */}
+              <div className="pt-4 border-t border-border space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
+                  <ImageIcon size={14} /> Cover Image URL
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  placeholder="https://..."
+                  value={coverImageUrl}
+                  onChange={(e) => setCoverImageUrl(e.target.value)}
+                />
+              </div>
+
+              {/* Series Integration */}
+              <div className="pt-4 border-t border-border space-y-4">
+                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
+                  <ListOrdered size={14} /> Series
+                </label>
+                <select
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all appearance-none cursor-pointer"
+                  value={seriesId}
+                  onChange={(e) => setSeriesId(e.target.value)}
+                >
+                  <option value="">None (Standalone)</option>
+                  {seriesList.map(s => (
+                    <option key={s.id} value={s.id}>{s.title}</option>
+                  ))}
+                </select>
+
+                {seriesId && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Order in Series</label>
+                    <input
+                      type="number"
+                      className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                      value={seriesOrder}
+                      onChange={(e) => setSeriesOrder(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Slug */}
+              <div className="pt-4 border-t border-border space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-text-faint">
                   Slug
                 </label>
@@ -207,8 +324,8 @@ export default function EditPostPage({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">
-                  Category
+                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
+                  <Hash size={14} /> Category
                 </label>
                 <input
                   type="text"

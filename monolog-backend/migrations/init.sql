@@ -8,6 +8,20 @@ CREATE TABLE IF NOT EXISTS admins (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Series table
+CREATE TABLE IF NOT EXISTS series (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    description TEXT,
+    cover_image_url TEXT,
+    seo_title TEXT,
+    seo_description TEXT,
+    seo_keywords TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Posts table
 CREATE TABLE IF NOT EXISTS posts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -18,6 +32,12 @@ CREATE TABLE IF NOT EXISTS posts (
     category TEXT,
     is_published BOOLEAN DEFAULT FALSE,
     published_at TIMESTAMP WITH TIME ZONE,
+    cover_image_url TEXT,
+    series_id UUID REFERENCES series(id) ON DELETE SET NULL,
+    series_order INTEGER DEFAULT 0,
+    seo_title TEXT,
+    seo_description TEXT,
+    seo_keywords TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -61,6 +81,12 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT FALSE;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS cover_image_url TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS series_id UUID REFERENCES series(id) ON DELETE SET NULL;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS series_order INTEGER DEFAULT 0;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS seo_title TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS seo_description TEXT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS seo_keywords TEXT;
 ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE;
 ALTER TABLE views ADD COLUMN IF NOT EXISTS ip_address TEXT NOT NULL DEFAULT '';
 
@@ -68,9 +94,12 @@ ALTER TABLE views ADD COLUMN IF NOT EXISTS ip_address TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS idx_posts_is_published ON posts(is_published);
 CREATE INDEX IF NOT EXISTS idx_posts_published_at ON posts(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+CREATE INDEX IF NOT EXISTS idx_posts_series_id ON posts(series_id);
+CREATE INDEX IF NOT EXISTS idx_posts_series_order ON posts(series_order);
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_comments_is_approved ON comments(is_approved);
 CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON reactions(post_id);
 CREATE INDEX IF NOT EXISTS idx_views_post_id ON views(post_id);
 CREATE INDEX IF NOT EXISTS idx_views_ip_post ON views(post_id, ip_address);
 CREATE INDEX IF NOT EXISTS idx_views_recent  ON views(post_id, ip_address, viewed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_series_slug ON series(slug);

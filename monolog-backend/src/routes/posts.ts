@@ -16,9 +16,15 @@ const createPostSchema = z.object({
       "Slug must contain only lowercase letters, numbers, and hyphens",
     ),
   content: z.string().min(1, "Content is required"),
-  excerpt: z.string().max(500).optional(),
-  category: z.string().max(100).optional(),
+  excerpt: z.string().max(1000).optional().nullable(),
+  category: z.string().max(100).optional().nullable(),
   is_published: z.boolean().optional().default(false),
+  cover_image_url: z.string().url("Invalid image URL").optional().nullable().or(z.literal("")),
+  series_id: z.string().uuid("Invalid series ID").optional().nullable().or(z.literal("")),
+  series_order: z.number().int().optional().default(0),
+  seo_title: z.string().max(300).optional().nullable(),
+  seo_description: z.string().max(1000).optional().nullable(),
+  seo_keywords: z.string().max(1000).optional().nullable(),
 });
 
 const updatePostSchema = createPostSchema.partial();
@@ -28,7 +34,7 @@ router.get("/", async (_req, res) => {
   try {
     const result = await query(`
       SELECT
-        p.id, p.title, p.slug, p.excerpt, p.category, p.published_at,
+        p.id, p.title, p.slug, p.excerpt, p.category, p.published_at, p.cover_image_url,
         COALESCE(v.views,    0)::int AS views,
         COALESCE(c.comments, 0)::int AS comments
       FROM posts p
@@ -57,7 +63,7 @@ router.get("/", async (_req, res) => {
 router.get("/admin/list", authenticateToken, async (req, res) => {
   try {
     const result = await query(
-      "SELECT id, title, slug, excerpt, category, is_published, published_at, created_at FROM posts ORDER BY created_at DESC",
+      "SELECT id, title, slug, excerpt, category, is_published, published_at, created_at, cover_image_url, series_id, series_order FROM posts ORDER BY created_at DESC",
     );
     res.json(result.rows);
   } catch (err) {
@@ -85,14 +91,40 @@ router.get("/:id_or_slug", async (req, res) => {
   const { id_or_slug } = req.params;
   try {
     const result = await query(
-      "SELECT * FROM posts WHERE (id::text = $1 OR slug = $1) AND is_published = TRUE",
+      `SELECT p.*, s.title as series_title, s.slug as series_slug 
+       FROM posts p 
+       LEFT JOIN series s ON s.id = p.series_id 
+       WHERE (p.id::text = $1 OR p.slug = $1) AND p.is_published = TRUE`,
       [id_or_slug],
     );
+    
     if (result.rows.length === 0)
       return res.status(404).json({ message: "Post not found" });
-    res.json(result.rows[0]);
+    
+    const post = result.rows[0];
+    
+    // If post is part of a series, fetch neighboring posts for navigation
+    if (post.series_id) {
+      const seriesPosts = await query(
+        `SELECT id, title, slug FROM posts 
+         WHERE series_id = $1 AND is_published = TRUE 
+         ORDER BY series_order ASC, published_at ASC`,
+        [post.series_id]
+      );
+      
+      const all = seriesPosts.rows;
+      const currentIndex = all.findIndex(p => p.id === post.id);
+      
+      post.series_nav = {
+        all,
+        prev: currentIndex > 0 ? all[currentIndex - 1] : null,
+        next: currentIndex < all.length - 1 ? all[currentIndex + 1] : null
+      };
+    }
+    
+    res.json(post);
   } catch (err) {
-    console.error("Error fetching post:", err);
+    console.error("Error fetching post detail:", err);
     res.status(500).json({ message: "Error fetching post" });
   }
 });
@@ -104,12 +136,25 @@ router.post("/", authenticateToken, async (req, res) => {
     return res.status(400).json({ message: parsed.error.errors[0].message });
   }
 
-  const { title, slug, content, excerpt, category, is_published } = parsed.data;
+  const { 
+    title, slug, content, excerpt, category, is_published, 
+    cover_image_url, series_id, series_order, 
+    seo_title, seo_description, seo_keywords 
+  } = parsed.data;
+
   try {
     const published_at = is_published ? new Date() : null;
     const result = await query(
-      "INSERT INTO posts (title, slug, content, excerpt, category, is_published, published_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-      [title, slug, content, excerpt, category, is_published, published_at],
+      `INSERT INTO posts (
+        title, slug, content, excerpt, category, is_published, published_at,
+        cover_image_url, series_id, series_order, 
+        seo_title, seo_description, seo_keywords
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [
+        title, slug, content, excerpt || null, category || null, is_published, published_at,
+        cover_image_url || null, series_id || null, series_order || 0,
+        seo_title || null, seo_description || null, seo_keywords || null
+      ],
     );
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
@@ -131,12 +176,29 @@ router.put("/:id", authenticateToken, async (req, res) => {
     return res.status(400).json({ message: parsed.error.errors[0].message });
   }
 
-  const { title, slug, content, excerpt, category, is_published } = parsed.data;
+  const { 
+    title, slug, content, excerpt, category, is_published,
+    cover_image_url, series_id, series_order,
+    seo_title, seo_description, seo_keywords
+  } = parsed.data;
+
   try {
     const published_at = is_published ? new Date() : null;
     const result = await query(
-      "UPDATE posts SET title = $1, slug = $2, content = $3, excerpt = $4, category = $5, is_published = $6, published_at = COALESCE(published_at, $7), updated_at = NOW() WHERE id = $8 RETURNING *",
-      [title, slug, content, excerpt, category, is_published, published_at, id],
+      `UPDATE posts SET 
+        title = $1, slug = $2, content = $3, excerpt = $4, category = $5, 
+        is_published = $6, published_at = COALESCE(published_at, $7), 
+        cover_image_url = $8, series_id = $9, series_order = $10,
+        seo_title = $11, seo_description = $12, seo_keywords = $13,
+        updated_at = NOW() 
+      WHERE id = $14 RETURNING *`,
+      [
+        title, slug, content, excerpt || null, category || null, 
+        is_published, published_at,
+        cover_image_url || null, series_id || null, series_order || 0,
+        seo_title || null, seo_description || null, seo_keywords || null,
+        id
+      ],
     );
     if (result.rows.length === 0)
       return res.status(404).json({ message: "Post not found" });
