@@ -4,6 +4,7 @@ import Link from "next/link";
 
 interface PostCardProps {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
   date: string;
@@ -26,6 +27,7 @@ const defaultMocks = [
 
 export function PostCard({
   id,
+  slug,
   title,
   excerpt,
   date,
@@ -43,7 +45,7 @@ export function PostCard({
   const mock = mockText || defaultMocks[idx % 3];
 
   return (
-    <Link href={`/posts/${id}`} className="blog-card" style={{ textDecoration: "none" }}>
+    <Link href={`/posts/${slug || id}`} className="blog-card" style={{ textDecoration: "none" }}>
       {/* ── Image ── */}
       <div className={`card-image ${imgCls}`}>
         {coverImage ? (

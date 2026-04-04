@@ -8,16 +8,21 @@ import {
   ExternalLink,
   Trash2,
   User,
+  MessageSquare,
+  ArrowRight,
+  ShieldAlert
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 
 export default function ModerationPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = api.getToken();
@@ -38,6 +43,21 @@ export default function ModerationPage() {
     }
     loadComments();
   }, [router]);
+
+  useEffect(() => {
+    if (!loading && containerRef.current) {
+      const ctx = gsap.context(() => {
+        gsap.from(".comment-card", {
+          y: 20,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.05,
+          ease: "power2.out",
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [loading]);
 
   const handleApprove = async (id: string) => {
     const token = api.getToken();
@@ -69,52 +89,54 @@ export default function ModerationPage() {
   const approvedComments = comments.filter((c) => c.is_approved);
 
   return (
-    <div className="p-4 md:p-8 space-y-8">
+    <div ref={containerRef} className="space-y-10 pb-20">
       {/* Header */}
-      <header className="flex items-center gap-4">
-        <Link
-          href="/dashboard"
-          className="p-2 rounded-xl text-text-muted hover:text-surface-on hover:bg-surface-muted transition-all"
-        >
-          <ChevronLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-surface-on">
-            Comment Moderation
-          </h1>
-          <p className="text-text-muted text-sm">
-            Keep the conversation meaningful and respectful.
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="dash-title">Comment <span className="text-orange">Moderation</span></h1>
+          <p className="text-tm max-w-md text-sm">
+            Review and manage audience feedback to maintain a healthy community.
           </p>
+        </div>
+        <div className="flex items-center gap-3 glass-panel px-4 py-2 rounded-2xl">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-td uppercase tracking-widest">Queue</span>
+            <span className="text-sm font-black text-tp">{pendingComments.length} Pending</span>
+          </div>
+          <div className="w-[1px] h-8 bg-dash-border mx-2" />
+          <ShieldAlert size={20} className={pendingComments.length > 0 ? "text-orange animate-pulse" : "text-td"} />
         </div>
       </header>
 
       {/* Content */}
       {error ? (
-        <div className="p-8 text-center bg-error/8 border border-error/20 text-error rounded-2xl font-medium">
+        <div className="p-8 text-center bg-error/10 border border-error/20 text-error rounded-[2rem] font-bold">
           {error}
         </div>
       ) : loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 skeleton rounded-2xl" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-40 skeleton rounded-[2rem]" />
           ))}
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-12">
           {/* Pending */}
-          <section className="space-y-4">
-            <h2 className="text-lg font-bold flex items-center gap-2 text-surface-on">
-              <Clock size={18} className="text-primary" />
-              Pending Review ({pendingComments.length})
+          <section className="space-y-6">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-td px-2 flex items-center gap-2">
+              <Clock size={14} className="text-orange" /> Pending Review
             </h2>
             {pendingComments.length === 0 ? (
-              <div className="text-center py-12 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-600 dark:text-emerald-400">
-                Great job! All comments have been reviewed.
+              <div className="text-center py-20 rounded-[3rem] border-2 border-dashed border-dash-border">
+                <Check size={40} className="mx-auto text-emerald-500 mb-4" />
+                <p className="text-emerald-500 font-black uppercase tracking-widest text-xs">
+                  Inbox Zero! All comments are reviewed.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {pendingComments.map((comment) => (
-                  <CommentCard
+                  <CommentItem
                     key={comment.id}
                     comment={comment}
                     onApprove={handleApprove}
@@ -128,14 +150,13 @@ export default function ModerationPage() {
 
           {/* Approved */}
           {approvedComments.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-text-muted">
-                <Check size={18} />
-                Approved Comments ({approvedComments.length})
+            <section className="space-y-6">
+              <h2 className="text-xs font-black uppercase tracking-[0.2em] text-td px-2 flex items-center gap-2">
+                <Check size={14} /> Approved Recently
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-4 opacity-70 hover:opacity-100 transition-opacity">
                 {approvedComments.slice(0, 5).map((comment) => (
-                  <CommentCard
+                  <CommentItem
                     key={comment.id}
                     comment={comment}
                     onApprove={handleApprove}
@@ -151,61 +172,61 @@ export default function ModerationPage() {
   );
 }
 
-function CommentCard({ comment, onApprove, onDelete, pending = false }: any) {
+function CommentItem({ comment, onApprove, onDelete, pending = false }: any) {
   return (
     <div
-      className={
-        pending
-          ? "rounded-2xl border border-primary/30 bg-primary/5 p-5 shadow-level-1 space-y-4"
-          : "rounded-2xl border border-border bg-white dark:bg-[#0F172A] p-5 shadow-level-1 space-y-4 opacity-75"
-      }
+      className={`
+        comment-card dash-card p-8 space-y-6 transition-all group
+        ${pending ? "border-orange/20 bg-orange/5 shadow-orange-sm" : ""}
+      `}
     >
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
-            <User size={16} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-surface-muted border border-dash-border flex items-center justify-center font-black text-tp text-lg group-hover:bg-orange group-hover:text-white transition-all">
+            {comment.author_name.charAt(0)}
           </div>
           <div>
-            <p className="font-bold text-primary">{comment.author_name}</p>
-            <p className="text-xs text-text-muted">
+            <p className="font-black text-tp group-hover:text-orange transition-colors">{comment.author_name}</p>
+            <p className="text-[10px] font-bold text-td uppercase tracking-wider">
               {new Date(comment.created_at).toLocaleString()}
             </p>
           </div>
         </div>
         <Link
-          href={`/post/${comment.post_id}`}
+          href={`/posts/${comment.post_id}`}
           target="_blank"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-primary hover:bg-primary/5 transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl glass-panel text-[10px] font-black uppercase tracking-widest text-tm hover:text-tp transition-all"
         >
-          on "{comment.post_title}"
+          Post: {comment.post_title}
           <ExternalLink size={12} />
         </Link>
       </div>
 
       {/* Content */}
-      <div className="px-4 py-3 rounded-xl bg-surface-alt dark:bg-[#0B1120] border border-border">
-        <p className="text-sm text-text-muted italic leading-relaxed">
+      <div className="p-6 rounded-2xl bg-bg/50 border border-dash-border relative">
+        <MessageSquare size={16} className="absolute -top-2 -left-2 text-orange opacity-50" />
+        <p className="text-sm text-tm leading-relaxed italic">
           "{comment.content}"
         </p>
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2">
-        {pending && (
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-all"
-            onClick={() => onApprove(comment.id)}
-          >
-            <Check size={14} /> Approve
-          </button>
-        )}
+      <div className="flex justify-end items-center gap-4 pt-2">
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-error hover:bg-error/10 text-sm font-semibold transition-all"
+          className="text-[10px] font-black uppercase tracking-widest text-td hover:text-error transition-all"
           onClick={() => onDelete(comment.id)}
         >
-          <Trash2 size={14} /> Delete
+          Discard permanently
         </button>
+        {pending && (
+          <button
+            className="btn-orange !py-2.5 !px-5 !text-xs shadow-orange-sm"
+            onClick={() => onApprove(comment.id)}
+          >
+            <Check size={14} /> Approve Comment
+          </button>
+        )}
       </div>
     </div>
   );

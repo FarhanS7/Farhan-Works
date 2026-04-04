@@ -1,7 +1,6 @@
 import { CommentSection } from "@/components/comment-section";
 import { Reactions } from "@/components/reactions";
 import { api } from "@/lib/api";
-import DOMPurify from "dompurify";
 import {
   ArrowLeft,
   BookOpen,
@@ -60,9 +59,9 @@ export async function generateMetadata({
     const post = await api.posts.getOne(id_or_slug);
 
     return {
-      title: post.seo_title || `${post.title} | MonoLog`,
+      title: post.seo_title || `${post.title} | Farhan.Dev`,
       description:
-        post.seo_description || post.excerpt || `Read ${post.title} on MonoLog`,
+        post.seo_description || post.excerpt || `Read ${post.title} on Farhan.Dev`,
       openGraph: {
         title: post.seo_title || post.title,
         description: post.seo_description || post.excerpt,
@@ -147,15 +146,8 @@ export default async function PostPage({
   try {
     // Server-side data fetching
     post = await api.posts.getOne(id_or_slug);
-
-    // Sanitize HTML content to prevent XSS from injected markup
-    const sanitized = DOMPurify.sanitize(post.content ?? "", {
-      USE_PROFILES: { html: true },
-      FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
-      FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover"],
-    });
-    post.content = sanitized;
   } catch (error) {
+    console.error("Error fetching post:", error);
     notFound();
   }
 
@@ -176,13 +168,13 @@ export default async function PostPage({
             image: post.cover_image_url,
             author: {
               "@type": "Person",
-              name: "MonoLogue",
+              name: "Farhan",
             },
             datePublished: post.published_at,
             dateModified: post.updated_at || post.published_at,
             mainEntityOfPage: {
               "@type": "WebPage",
-              "@id": `https://monolog.com/posts/${post.slug}`,
+              "@id": `https://farhan.dev/posts/${post.slug}`,
             },
           }),
         }}
@@ -240,7 +232,7 @@ export default async function PostPage({
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
             <span className="flex items-center gap-1.5">
-              <User size={14} /> MonoLogue
+              <User size={14} /> Farhan
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar size={14} />

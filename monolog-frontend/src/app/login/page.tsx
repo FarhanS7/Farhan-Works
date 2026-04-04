@@ -1,10 +1,11 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { BookOpen, Lock, User } from "lucide-react";
+import { Lock, User, ShieldCheck, ArrowLeft, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -12,6 +13,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (formRef.current) {
+      gsap.from(formRef.current, {
+        y: 40,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power4.out",
+      });
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,111 +33,100 @@ export default function LoginPage() {
     try {
       const data = await api.auth.login({ username, password });
       api.setToken(data.token);
+      localStorage.setItem("monolog_username", data.username || username);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Invalid username or password");
+      setError(err.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-surface-alt dark:bg-[#0B1120]">
-      {/* Card */}
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8 space-y-3">
-          <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-blue mx-auto">
-              <BookOpen size={20} className="text-white" />
-            </div>
+    <div className="min-h-screen bg-bg flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,rgba(255,102,0,0.05),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(255,102,0,0.02),transparent_40%)]">
+      <div ref={formRef} className="w-full max-w-[440px] space-y-10">
+        {/* Abstract Brand Element */}
+        <div className="flex flex-col items-center text-center space-y-6">
+          <Link href="/" className="group relative">
+             <div className="absolute inset-0 bg-orange/40 blur-2xl rounded-full scale-50 group-hover:scale-75 transition-transform" />
+             <div className="relative w-20 h-20 rounded-[2rem] glass-panel bg-surface-muted flex items-center justify-center border border-white/10 group-hover:border-orange/50 transition-all duration-500">
+               <ShieldCheck size={36} className="text-orange" />
+             </div>
           </Link>
-          <div>
-            <h1 className="text-2xl font-extrabold text-surface-on">
-              Admin Access
+          <div className="space-y-2">
+            <h1 className="text-4xl font-black text-tp tracking-tighter uppercase">
+              Admin <span className="text-orange">Portal</span>
             </h1>
-            <p className="text-sm text-text-muted mt-1">
-              Sign in to manage MonoLog
+            <p className="text-tm text-sm font-medium opacity-60">
+              Secure access for content moderators.
             </p>
           </div>
         </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleLogin}
-          className="bg-white dark:bg-[#0F172A] rounded-2xl border border-border shadow-level-2 p-6 space-y-5"
-        >
-          {error && (
-            <div className="px-4 py-3 rounded-xl bg-error/8 border border-error/20 text-error text-sm text-center">
-              {error}
-            </div>
-          )}
+        {/* Form Container */}
+        <div className="dash-card p-10 relative overflow-hidden backdrop-blur-3xl">
+          <div className="absolute top-0 left-0 w-1 h-full bg-orange" />
+          
+          <form onSubmit={handleLogin} className="space-y-8">
+            {error && (
+              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
+                {error}
+              </div>
+            )}
 
-          {/* Username */}
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-semibold text-surface-on"
-              htmlFor="username"
+            <div className="space-y-6">
+              {/* Username Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-td ml-1 flex items-center gap-2">
+                  <User size={12} className="text-orange" /> Username
+                </label>
+                <input
+                  type="text"
+                  placeholder="Moderator Identifier"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="w-full px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all placeholder:text-td placeholder:text-xs"
+                />
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-td ml-1 flex items-center gap-2">
+                  <Lock size={12} className="text-orange" /> Authentication Key
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all placeholder:text-td"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-orange shadow-orange py-4 px-8 group overflow-hidden"
             >
-              Username
-            </label>
-            <div className="relative">
-              <User
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint"
-                size={16}
-              />
-              <input
-                id="username"
-                type="text"
-                placeholder="admin"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
-            </div>
-          </div>
+              <span className="relative z-10 flex items-center justify-center gap-3">
+                {loading ? "Verifying..." : (<><LogIn size={18} /> Enter Dashboard</>)}
+              </span>
+            </button>
+          </form>
+        </div>
 
-          {/* Password */}
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-semibold text-surface-on"
-              htmlFor="password"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <Lock
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint"
-                size={16}
-              />
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+        {/* Footer Link */}
+        <div className="text-center pt-4">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-td hover:text-tp transition-all"
           >
-            {loading ? "Authenticating…" : "Sign In"}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-text-faint mt-5">
-          <Link href="/" className="hover:text-primary transition-colors">
-            ← Back to blog
+            <ArrowLeft size={12} /> Return to front-end
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

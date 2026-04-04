@@ -11,8 +11,8 @@ import {
 import Link from "next/link";
 
 export const metadata = {
-  title: "About – MonoLog",
-  description: "About the author and philosophy of MonoLog.",
+  title: "About – Farhan.Dev",
+  description: "About the author and philosophy of Farhan.Dev.",
 };
 
 const topics = [
@@ -54,28 +54,41 @@ export default function AboutPage() {
                   The author
                 </p>
                 <h1 className="font-display text-4xl font-semibold tracking-tight text-surface-on md:text-6xl">
-                  About MonoLog
+                  About Farhan.Dev
                 </h1>
                 <p className="max-w-2xl text-lg leading-relaxed text-text-muted md:text-xl">
-                  A personal publishing space for deep thoughts, technical
+                  My personal publishing space for deep thoughts, technical
                   deep-dives, and meditations on the future of technology.
                 </p>
               </div>
 
               <div className="flex gap-3 pt-2">
                 <a
-                  href="#"
-                  aria-label="GitHub"
+                  href="https://www.linkedin.com/in/farhan-shahriar1/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
                   className="rounded-xl border border-border/80 bg-black/20 p-2.5 text-text-muted transition-all hover:border-primary/40 hover:text-surface-on"
                 >
-                  <Github size={18} />
+                  <div className="text-[14px] font-bold">in</div>
                 </a>
                 <a
-                  href="#"
+                  href="https://x.com/FarhanShah29986"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="Twitter"
                   className="rounded-xl border border-border/80 bg-black/20 p-2.5 text-text-muted transition-all hover:border-primary/40 hover:text-surface-on"
                 >
                   <Twitter size={18} />
+                </a>
+                <a
+                  href="https://www.facebook.com/farhan.shahriar.5264"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="rounded-xl border border-border/80 bg-black/20 p-2.5 text-text-muted transition-all hover:border-primary/40 hover:text-surface-on"
+                >
+                  <div className="text-[14px] font-bold">f</div>
                 </a>
               </div>
             </div>
@@ -118,7 +131,7 @@ export default function AboutPage() {
           <div className="space-y-4 text-text-muted leading-relaxed">
             <p>
               Most content today is optimised for speed — quick takes,
-              listicles, and shallow overviews. MonoLog is the opposite. Every
+              listicles, and shallow overviews. Farhan.Dev is the opposite. Every
               post is written to be re-read.
             </p>
             <p>

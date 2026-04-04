@@ -8,19 +8,11 @@ export function Footer() {
       <div className="footer-top">
         {/* SERVICE */}
         <div className="footer-col">
-          <h4>Service</h4>
+          <h4>Explore</h4>
           <ul>
-            <li><Link href="#">Case Studies</Link></li>
-            <li><Link href="#">Insights</Link></li>
-            <li><Link href="#">Contact Us</Link></li>
-          </ul>
-        </div>
-
-        {/* COMPANY */}
-        <div className="footer-col">
-          <h4>Company</h4>
-          <ul>
-            <li><Link href="/about">About Us</Link></li>
+            <li><Link href="/posts">Articles</Link></li>
+            <li><Link href="/series">Series</Link></li>
+            <li><Link href="/about">About</Link></li>
           </ul>
         </div>
 
@@ -39,37 +31,36 @@ export function Footer() {
           <div className="footer-contact">
             <div className="contact-item">
               <div className="contact-icon">📍</div>
-              <span>Floor 8, Building a One Central, DWTC, Dubai, UAE</span>
+              <span>Dhaka, Bangladesh</span>
             </div>
             <div className="contact-item">
               <div className="contact-icon">📞</div>
-              <span>+971 50 324 3460</span>
+              <span>+8801554313374</span>
             </div>
             <div className="contact-item">
               <div className="contact-icon">✉</div>
-              <span>hello@inneraktive.com</span>
+              <span>farhan.official0007@gmail.com</span>
             </div>
           </div>
         </div>
 
         {/* BRAND + SOCIAL */}
         <div className="footer-brand">
-          <h3>Unlock Your Potential with<br />no-code Solutions</h3>
+          <h3>Exploring the intersection of<br />code, systems, and craft.</h3>
           <div className="social-links">
-            <a href="#" className="social-btn">f</a>
-            <a href="#" className="social-btn">in</a>
-            <a href="#" className="social-btn">𝕏</a>
-            <a href="#" className="social-btn">▶</a>
+            <a href="https://www.facebook.com/farhan.shahriar.5264" target="_blank" rel="noopener noreferrer" className="social-btn">f</a>
+            <a href="https://www.linkedin.com/in/farhan-shahriar1/" target="_blank" rel="noopener noreferrer" className="social-btn">in</a>
+            <a href="https://x.com/FarhanShah29986" target="_blank" rel="noopener noreferrer" className="social-btn">𝕏</a>
           </div>
         </div>
       </div>
 
       {/* Giant brand wordmark */}
-      <div className="footer-wordmark">INNERAKTIVE</div>
+      <div className="footer-wordmark">Farhan.Dev</div>
 
       {/* Copyright */}
       <div className="footer-bottom">
-        © 2024 Inneraktive FZE. All rights reserved.
+        © 2024 Farhan.Dev. All rights reserved.
       </div>
     </footer>
   );

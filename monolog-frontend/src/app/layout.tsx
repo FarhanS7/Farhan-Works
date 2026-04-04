@@ -24,7 +24,7 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Inneraktive – Insights",
+  title: "Farhan.Dev – Insights",
   description:
     "Stay up-to-date with the latest insights on no-code/low-code development, digital transformation, and modern web solutions.",
 };

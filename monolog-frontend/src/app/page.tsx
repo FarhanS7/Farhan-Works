@@ -2,16 +2,17 @@
 
 import { PostCard } from "@/components/post-card";
 import { api } from "@/lib/api";
+import { Layers, ArrowRight, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 /* ── FAQ Data ──────────────────────────────────────────────── */
 const faqData = [
-  { q: "What is no-code?", a: "No-code is a development method that allows people to build apps or websites without coding, using visual tools and drag-and-drop interfaces." },
-  { q: "What are the benefits?", a: "No-code platforms dramatically reduce development time and cost, allowing non-technical teams to build and iterate on products independently." },
-  { q: "What services do you offer?", a: "We offer full-stack no-code development, automation workflows, integrations, and ongoing maintenance for businesses of all sizes." },
-  { q: "How can I get started?", a: "Simply reach out via our contact form and we'll schedule a discovery call to understand your needs and recommend the best solution." },
-  { q: "Can I integrate with existing systems?", a: "Yes, most no-code platforms support hundreds of integrations via APIs and tools like Zapier, Make, and native connectors." },
+  { q: "What is Farhan.Dev?", a: "A personal technical publication focused on software architecture, systems engineering, and the craft of high-quality software." },
+  { q: "What topics do you cover?", a: "Deep dives into Node.js, Next.js, Distributed Systems, and the occasional personal meditation on technical growth." },
+  { q: "How often do you post?", a: "New long-form articles are released bi-weekly, with smaller insights and 'Today I Learned' snippets appearing more frequently." },
+  { q: "Can I collaborate or guest post?", a: "While this is primarily a personal journal, I am always open to technical discussions and collaborative open-source ventures." },
+  { q: "Where can I follow you?", a: "I am most active on LinkedIn and X. You can find links to all my social profiles in the footer below." },
 ];
 
 /* ── Skeleton Card ─────────────────────────────────────────── */
@@ -36,6 +37,7 @@ function SkeletonCard() {
 /* ═══════════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const [posts, setPosts] = useState<any[]>([]);
+  const [series, setSeries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState(0);
@@ -51,98 +53,116 @@ export default function HomePage() {
   const faqRRef = useRef<HTMLDivElement>(null);
   const laptopRef = useRef<HTMLDivElement>(null);
 
-  /* ── Fetch posts ── */
+  /* ── Fetch data ── */
   useEffect(() => {
-    api.posts
-      .getAll()
-      .then(setPosts)
+    Promise.all([
+      api.posts.getAll().catch(() => []),
+      api.series.getAll().catch(() => [])
+    ])
+      .then(([postsData, seriesData]) => {
+        setPosts(Array.isArray(postsData) ? postsData : []);
+        setSeries(Array.isArray(seriesData) ? seriesData : []);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
   /* ── GSAP animations ── */
   useEffect(() => {
-    let gsapMod: any;
-    let ScrollTriggerMod: any;
+    if (loading) return;
+
     let ctx: any;
+    let cancelled = false;
 
     (async () => {
       try {
         const g = await import("gsap");
         const s = await import("gsap/ScrollTrigger");
-        gsapMod = g.gsap || g.default;
-        ScrollTriggerMod = s.ScrollTrigger || s.default;
-        gsapMod.registerPlugin(ScrollTriggerMod);
+        if (cancelled) return;
 
-        ctx = gsapMod.context(() => {
-          // Hero badge + title + subtitle
+        const gsap = g.gsap || g.default;
+        const ScrollTrigger = s.ScrollTrigger || s.default;
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Kill any stale ScrollTriggers from previous mount
+        ScrollTrigger.getAll().forEach((t: any) => t.kill());
+
+        ctx = gsap.context(() => {
+          // Hero badge + title + subtitle — use fromTo so end-state is always visible
           const badge = heroRef.current?.querySelector(".hero-badge");
           const h1 = heroRef.current?.querySelector("h1");
           const sub = heroRef.current?.querySelector(".hero-sub");
-          if (badge) gsapMod.from(badge, { opacity: 0, y: -10, duration: 0.5, delay: 0.2 });
-          if (h1) gsapMod.from(h1, { opacity: 0, y: 28, duration: 0.6, delay: 0.3, ease: "power3.out" });
-          if (sub) gsapMod.from(sub, { opacity: 0, y: 18, duration: 0.5, delay: 0.45, ease: "power2.out" });
+          if (badge) gsap.fromTo(badge, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.2 });
+          if (h1) gsap.fromTo(h1, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.6, delay: 0.3, ease: "power3.out" });
+          if (sub) gsap.fromTo(sub, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.45, ease: "power2.out" });
 
           // Featured wrap
           if (featRef.current) {
-            gsapMod.from(featRef.current, {
-              opacity: 0, y: 38, duration: 0.85, ease: "power3.out",
-              scrollTrigger: { trigger: featRef.current, start: "top 83%" },
-            });
+            gsap.fromTo(featRef.current,
+              { opacity: 0, y: 38 },
+              { opacity: 1, y: 0, duration: 0.85, ease: "power3.out",
+                scrollTrigger: { trigger: featRef.current, start: "top 83%" } }
+            );
           }
 
           // Laptop float
           if (laptopRef.current) {
-            gsapMod.to(laptopRef.current, { y: -12, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
+            gsap.to(laptopRef.current, { y: -12, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 });
           }
 
           // Grid header
           if (gridHeaderRef.current) {
-            gsapMod.from(gridHeaderRef.current, {
-              opacity: 0, y: 18, duration: 0.55, ease: "power2.out",
-              scrollTrigger: { trigger: gridHeaderRef.current, start: "top 88%" },
-            });
+            gsap.fromTo(gridHeaderRef.current,
+              { opacity: 0, y: 18 },
+              { opacity: 1, y: 0, duration: 0.55, ease: "power2.out",
+                scrollTrigger: { trigger: gridHeaderRef.current, start: "top 88%" } }
+            );
           }
 
           // Blog cards stagger
           const cards = document.querySelectorAll(".blog-card");
           cards.forEach((c, i) => {
-            gsapMod.from(c, {
-              opacity: 0, y: 28, duration: 0.58, ease: "power3.out",
-              delay: (i % 3) * 0.1,
-              scrollTrigger: { trigger: c, start: "top 92%" },
-            });
+            gsap.fromTo(c,
+              { opacity: 0, y: 28 },
+              { opacity: 1, y: 0, duration: 0.58, ease: "power3.out",
+                delay: (i % 3) * 0.1,
+                scrollTrigger: { trigger: c, start: "top 92%" } }
+            );
           });
 
           // Newsletter
           if (nlRef.current) {
-            gsapMod.from(nlRef.current, {
-              opacity: 0, duration: 0.7, ease: "power2.out",
-              scrollTrigger: { trigger: nlRef.current, start: "top 80%" },
-            });
+            gsap.fromTo(nlRef.current,
+              { opacity: 0 },
+              { opacity: 1, duration: 0.7, ease: "power2.out",
+                scrollTrigger: { trigger: nlRef.current, start: "top 80%" } }
+            );
           }
 
           // FAQ columns
           if (faqLRef.current) {
-            gsapMod.from(faqLRef.current, {
-              opacity: 0, x: -28, duration: 0.7, ease: "power3.out",
-              scrollTrigger: { trigger: faqLRef.current, start: "top 82%" },
-            });
+            gsap.fromTo(faqLRef.current,
+              { opacity: 0, x: -28 },
+              { opacity: 1, x: 0, duration: 0.7, ease: "power3.out",
+                scrollTrigger: { trigger: faqLRef.current, start: "top 82%" } }
+            );
           }
           if (faqRRef.current) {
-            gsapMod.from(faqRRef.current, {
-              opacity: 0, x: 28, duration: 0.7, ease: "power3.out", delay: 0.12,
-              scrollTrigger: { trigger: faqRRef.current, start: "top 82%" },
-            });
+            gsap.fromTo(faqRRef.current,
+              { opacity: 0, x: 28 },
+              { opacity: 1, x: 0, duration: 0.7, ease: "power3.out", delay: 0.12,
+                scrollTrigger: { trigger: faqRRef.current, start: "top 82%" } }
+            );
           }
 
           // Footer wordmark
           const wm = document.querySelector(".footer-wordmark");
           if (wm) {
-            gsapMod.from(wm, {
-              opacity: 0, y: 30, duration: 0.9, ease: "power2.out",
-              scrollTrigger: { trigger: wm, start: "top 90%" },
-            });
+            gsap.fromTo(wm,
+              { opacity: 0, y: 30 },
+              { opacity: 1, y: 0, duration: 0.9, ease: "power2.out",
+                scrollTrigger: { trigger: wm, start: "top 90%" } }
+            );
           }
         });
       } catch (err) {
@@ -150,7 +170,10 @@ export default function HomePage() {
       }
     })();
 
-    return () => { ctx?.revert?.(); };
+    return () => {
+      cancelled = true;
+      ctx?.revert?.();
+    };
   }, [loading]);
 
   /* ── Cursor glow ── */
@@ -200,7 +223,7 @@ export default function HomePage() {
       <section className="hero-section" ref={heroRef}>
         <div className="hero-badge">✨ Latest</div>
         <h1>Discover our Insights</h1>
-        <p className="hero-sub">Stay up-to-date with our latest blog posts.</p>
+        <p className="hero-sub">Deep dives into software engineering, architecture, and systems.</p>
       </section>
 
       {/* ═══ FEATURED ═══ */}
@@ -211,10 +234,10 @@ export default function HomePage() {
               <div className="laptop-mock" ref={laptopRef}>
                 <div className="laptop-screen">
                   <strong>
-                    Empower Your Team with<br />Seamless Collaboration
+                    Farhan.Dev<br />Technical Deep Dives
                   </strong>
                   <p style={{ fontSize: 10, marginTop: 8, opacity: 0.7 }}>
-                    Dashboard · Tasks · Members · Hours
+                    Architecture · Systems · Code · Performance
                   </p>
                 </div>
               </div>
@@ -225,7 +248,7 @@ export default function HomePage() {
             <h2>{featured?.title || "10 Tips for Successful Blogging"}</h2>
             <p>{featured?.excerpt || "Learn how to create engaging blog content that drives traffic."}</p>
             <Link
-              href={featured ? `/posts/${featured.id}` : "/posts"}
+              href={featured ? `/posts/${featured.slug || featured.id}` : "/posts"}
               className="btn-orange"
               style={{ width: "fit-content" }}
             >
@@ -243,6 +266,63 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* ═══ FEATURED SERIES ═══ */}
+      {series.length > 0 && (
+        <div className="px-[60px] mb-16" style={{ maxWidth: 1100, marginLeft: "auto", marginRight: "auto" }}>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-black text-tp tracking-tight">Curated <span className="text-orange">Collections</span></h2>
+              <p className="text-sm text-tm mt-1">Deep dives into specific topics, organized for learning.</p>
+            </div>
+            <Link href="/series" className="text-[10px] font-black uppercase tracking-widest text-td hover:text-orange transition-all flex items-center gap-2">
+              View All Series <ArrowRight size={12} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {series.slice(0, 3).map((s, i) => (
+              <Link 
+                key={s.id} 
+                href={`/series/${s.slug}`}
+                className="group relative overflow-hidden rounded-[2rem] border border-card-border bg-card-bg hover:border-orange/30 transition-all duration-500 hover:shadow-2xl hover:shadow-orange/5"
+              >
+                <div className="aspect-[16/10] relative overflow-hidden">
+                   {s.cover_image_url ? (
+                     <img 
+                      src={s.cover_image_url} 
+                      alt={s.title} 
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
+                     />
+                   ) : (
+                     <div className={`w-full h-full bg-gradient-to-br ${i % 2 === 0 ? 'from-orange/20 to-purple/20' : 'from-blue/20 to-emerald/20'} flex items-center justify-center`}>
+                        <Layers size={48} className="text-tp/10" />
+                     </div>
+                   )}
+                   <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/20 to-transparent opacity-60" />
+                </div>
+                
+                <div className="p-8 relative">
+                  <div className="flex items-center gap-3 mb-4">
+                     <span className="px-3 py-1 rounded-full bg-orange/10 border border-orange/20 text-[10px] font-black text-orange uppercase tracking-widest">
+                       {s.post_count || 0} Articles
+                     </span>
+                  </div>
+                  <h3 className="text-xl font-black text-tp group-hover:text-orange transition-colors mb-3 tracking-tight leading-tight">
+                    {s.title}
+                  </h3>
+                  <p className="text-sm text-tm line-clamp-2 mb-6">
+                    {s.description || "Exploration of concepts and implementations in this specialized series."}
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-td group-hover:text-tp transition-all">
+                    Start Learning <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ═══ GRID HEADER ═══ */}
       <div className="section-header" ref={gridHeaderRef}>
@@ -277,6 +357,7 @@ export default function HomePage() {
             <PostCard
               key={post.id}
               id={post.id}
+              slug={post.slug}
               title={post.title}
               excerpt={post.excerpt || "Discover how blogging can boost your business growth."}
               date={new Date(post.published_at).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
@@ -310,9 +391,9 @@ export default function HomePage() {
           <div className="nl-orb2" />
           <h2>Stay Updated With Our Newslatter</h2>
           <p>
-            Subscribe to our newsletter for the latest updates and insights
+            Subscribe to get my latest technical deep dives 
             <br />
-            on no-code/low-code development.
+            delivered straight to your inbox.
           </p>
           <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
             <input className="newsletter-input" type="email" placeholder="Enter Your Email" />
@@ -328,7 +409,7 @@ export default function HomePage() {
       <div className="faq-section" id="contact">
         <div className="faq-left" ref={faqLRef}>
           <h2>Frequently Asked Questions</h2>
-          <p>Find answers to common questions about our no-code/low-code development services.</p>
+          <p>Common questions about my writing, topics, and development background.</p>
           <div className="faq-contact-label">Still have questions?</div>
           <div className="faq-contact-sub">Contact us for further assistance.</div>
           <a href="#contact" className="btn-orange" style={{ width: "fit-content", marginTop: 4 }}>

@@ -1,10 +1,23 @@
 "use client"
 
 import { api } from "@/lib/api"
-import { ChevronLeft, Edit, Plus, Search, Trash2, Image as ImageIcon, ListOrdered } from "lucide-react"
+import { 
+  ChevronLeft, 
+  Edit3, 
+  Plus, 
+  Search, 
+  Trash2, 
+  Image as ImageIcon, 
+  ListOrdered,
+  Layers,
+  ArrowRight,
+  X,
+  ExternalLink
+} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { gsap } from "gsap"
 
 export default function SeriesDashboard() {
   const router = useRouter()
@@ -13,6 +26,7 @@ export default function SeriesDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingSeries, setEditingSeries] = useState<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   
   // Form state
   const [title, setTitle] = useState("")
@@ -25,6 +39,21 @@ export default function SeriesDashboard() {
   useEffect(() => {
     loadSeries()
   }, [])
+
+  useEffect(() => {
+    if (!loading && containerRef.current) {
+      const ctx = gsap.context(() => {
+        gsap.from(".series-card", {
+          y: 30,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power3.out",
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [loading]);
 
   const loadSeries = async () => {
     const token = api.getToken()
@@ -111,114 +140,146 @@ export default function SeriesDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="p-2 rounded-xl text-text-muted hover:text-surface-on hover:bg-surface-muted transition-all">
-            <ChevronLeft size={20} />
-          </Link>
-          <h1 className="text-3xl font-black tracking-tight text-surface-on">Series Management</h1>
+    <div ref={containerRef} className="space-y-10 pb-20">
+      {/* Header */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="dash-title">Learning <span className="text-orange">Series</span></h1>
+          <p className="text-tm max-w-md text-sm">
+            Group your articles into structured learning paths or thematic series.
+          </p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all"
+          className="btn-orange shadow-orange py-3.5 px-6"
         >
-          <Plus size={18} /> New Series
+          <Plus size={18} /> Create Series
         </button>
       </header>
 
+      {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => <div key={i} className="h-48 skeleton rounded-2xl" />)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3].map(i => <div key={i} className="h-64 skeleton rounded-[2rem]" />)}
         </div>
       ) : series.length === 0 ? (
-        <div className="text-center py-24 border-2 border-dashed border-border rounded-3xl">
-          <p className="text-text-muted">No series created yet. Create one to group your posts!</p>
+        <div className="text-center py-32 rounded-[3rem] border-2 border-dashed border-dash-border">
+          <Layers size={48} className="mx-auto text-td mb-4" />
+          <p className="text-td font-black uppercase tracking-widest text-sm">
+            No series yet
+          </p>
+          <button onClick={() => handleOpenModal()} className="text-orange font-bold text-sm hover:underline mt-2">
+            Create your first collection ↗
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {series.map((item) => (
-            <div key={item.id} className="group relative rounded-2xl border border-border bg-surface shadow-level-1 overflow-hidden transition-all hover:shadow-level-2 hover:border-primary/30">
-              {item.cover_image_url && (
-                <div className="h-32 w-full overflow-hidden">
-                  <img src={item.cover_image_url} alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-                </div>
-              )}
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-lg text-surface-on leading-tight">{item.title}</h3>
-                  <span className="px-2 py-0.5 rounded-md bg-surface-muted text-[10px] font-black uppercase tracking-widest text-text-muted">
-                    {item.post_count} Posts
+            <div key={item.id} className="series-card dash-card group overflow-hidden flex flex-col h-[420px]">
+              {/* Cover Area */}
+              <div className="h-44 bg-surface-muted relative overflow-hidden shrink-0 border-b border-dash-border">
+                {item.cover_image_url ? (
+                  <img src={item.cover_image_url} alt={item.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-td">
+                    <Layers size={40} strokeWidth={1} />
+                  </div>
+                )}
+                <div className="absolute top-4 left-4">
+                  <span className="px-3 py-1 rounded-full glass-panel text-[10px] font-black uppercase tracking-widest text-tp">
+                    {item.post_count} Chapters
                   </span>
                 </div>
-                <p className="text-sm text-text-muted line-clamp-2 mb-4">{item.description || "No description provided."}</p>
-                <div className="flex items-center gap-2 pt-4 border-t border-border mt-auto">
-                  <button 
-                    onClick={() => handleOpenModal(item)}
-                    className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-                  >
-                    <Edit size={16} />
-                  </button>
+              </div>
+
+              {/* Content Area */}
+              <div className="p-8 flex flex-col flex-1">
+                <h3 className="text-xl font-black text-tp group-hover:text-orange transition-colors mb-3 line-clamp-1">{item.title}</h3>
+                <p className="text-sm text-tm line-clamp-2 mb-6 flex-1">{item.description || "No description provided."}</p>
+                
+                <div className="flex items-center justify-between pt-6 border-t border-dash-border">
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={() => handleOpenModal(item)}
+                      className="p-3 rounded-xl text-td hover:text-orange hover:bg-orange/10 transition-all"
+                      title="Edit Series"
+                    >
+                      <Edit3 size={18} />
+                    </button>
                     <Link
                       href={`/dashboard/new?seriesId=${item.id}`}
-                      className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-                      title="Add Part to Series"
+                      className="p-3 rounded-xl text-td hover:text-orange hover:bg-orange/10 transition-all"
+                      title="Add Chapter"
                     >
-                      <Plus size={16} />
+                      <Plus size={18} />
                     </Link>
-                  <Link 
-                    href={`/dashboard/series/${item.id}/sort`}
-                    className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-                    title="Reorder Chapters"
-                  >
-                    <ListOrdered size={16} />
-                  </Link>
-                  <button 
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-all"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    <Link 
+                      href={`/dashboard/series/${item.id}/sort`}
+                      className="p-3 rounded-xl text-td hover:text-orange hover:bg-orange/10 transition-all"
+                      title="Reorder"
+                    >
+                      <ListOrdered size={18} />
+                    </Link>
+                  </div>
+                  
                   <Link 
                     href={`/series/${item.slug}`} 
                     target="_blank"
-                    className="ml-auto text-xs font-bold text-primary hover:underline"
+                    className="p-3 rounded-xl text-td hover:text-tp hover:bg-dash-hover transition-all"
                   >
-                    View Public Page
+                    <ExternalLink size={18} />
                   </Link>
                 </div>
               </div>
+              
+              {/* Delete button hidden in group hover */}
+              <button 
+                onClick={() => handleDelete(item.id)}
+                className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal */}
+      {/* Modern Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-surface border border-border rounded-3xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-border flex justify-between items-center">
-              <h2 className="text-xl font-bold text-surface-on">{editingSeries ? 'Edit Series' : 'Create New Series'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-surface-on">×</button>
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+          <div className="glass-panel rounded-[3rem] w-full max-w-2xl shadow-orange-lg overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="p-8 border-b border-dash-border flex justify-between items-center bg-bg/50">
+              <h2 className="text-2xl font-black text-tp tracking-tight">
+                {editingSeries ? 'Edit' : 'New'} <span className="text-orange">Series</span>
+              </h2>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-tm hover:text-tp"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-10 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Title</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-td">Series Title</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-surface-on focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all"
                     value={title}
                     onChange={(e) => handleTitleChange(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Slug</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-td">Custom Slug</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-surface-on focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                   />
@@ -226,66 +287,66 @@ export default function SeriesDashboard() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Description</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-td">Description</label>
                 <textarea
-                  className="w-full h-24 px-4 py-2.5 rounded-xl border border-border bg-surface text-surface-on focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                  className="w-full h-32 px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all resize-none"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
-                  <ImageIcon size={14} /> Cover Image URL
+                <label className="text-[10px] font-black uppercase tracking-widest text-td flex items-center gap-2">
+                  <ImageIcon size={12} /> Cover Image URL
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-surface-on focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className="w-full px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all"
                   value={coverImageUrl}
                   onChange={(e) => setCoverImageUrl(e.target.value)}
-                  placeholder="https://..."
                 />
               </div>
 
-              <div className="pt-4 border-t border-border space-y-4">
-                <h3 className="text-sm font-bold text-surface-on flex items-center gap-2">
-                  <Search size={16} className="text-primary" /> SEO Settings
-                </h3>
+              {/* SEO Expandable */}
+              <div className="pt-8 border-t border-dash-border space-y-6">
+                <p className="text-[10px] font-black uppercase tracking-widest text-orange">Search Optimization (SEO)</p>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Meta Title</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-td">Meta Title</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-surface-on focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all"
                     value={seoTitle}
                     onChange={(e) => setSeoTitle(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Meta Description</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-td">Meta Description</label>
                   <textarea
-                    className="w-full h-20 px-4 py-2.5 rounded-xl border border-border bg-surface text-surface-on focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                    className="w-full h-24 px-5 py-4 rounded-2xl glass-panel bg-surface-muted text-tp focus:border-orange/50 focus:outline-none transition-all resize-none"
                     value={seoDescription}
                     onChange={(e) => setSeoDescription(e.target.value)}
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="pt-6 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-border bg-surface text-surface-on font-semibold hover:bg-surface-muted transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-2 px-8 py-3 rounded-xl bg-primary text-white font-semibold shadow-blue hover:bg-primary-hover transition-all"
-                >
-                  {editingSeries ? 'Update Series' : 'Create Series'}
-                </button>
-              </div>
-            </form>
+            {/* Modal Footer */}
+            <div className="p-8 border-t border-dash-border bg-bg/50 flex gap-4">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 px-6 py-4 rounded-2xl glass-panel text-tm font-bold hover:bg-dash-hover transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                onClick={(e: any) => handleSubmit(e)}
+                className="flex-[2] py-4 rounded-2xl bg-orange text-white font-black uppercase tracking-widest shadow-orange hover:bg-orange-dark transition-all"
+              >
+                {editingSeries ? 'Update Changes' : 'Create Series'}
+              </button>
+            </div>
           </div>
         </div>
       )}

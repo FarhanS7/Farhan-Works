@@ -7,10 +7,9 @@ import { useEffect, useRef, useState } from "react";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "About Us", href: "/about" },
-  { label: "Our Work", href: "/posts" },
-  { label: "Insights", href: "/blog" },
-  { label: "Contact Us", href: "#contact" },
+  { label: "Articles", href: "/posts" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "#contact" },
 ];
 
 export function NavigationRail() {
@@ -82,7 +81,7 @@ export function NavigationRail() {
     >
       {/* Logo */}
       <Link href="/" className="nav-logo">
-        INNERAKTIVE
+        Farhan.Dev
       </Link>
 
       {/* Desktop nav links */}

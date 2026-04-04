@@ -1,14 +1,26 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { ChevronLeft, Save, Send, Image as ImageIcon, Search, ListOrdered, Hash } from "lucide-react";
+import {
+  ChevronLeft,
+  Save,
+  Send,
+  Image as ImageIcon,
+  Search,
+  ListOrdered,
+  Hash,
+  Settings2,
+  X,
+  Plus
+} from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 
-export default function NewPostPage() {
+function NewPostContent() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const [saving, setSaving] = useState(false);
   const [seriesList, setSeriesList] = useState<{id: string, title: string}[]>([]);
   
   // Basic fields
@@ -26,28 +38,42 @@ export default function NewPostPage() {
   const [seoDescription, setSeoDescription] = useState("");
   const [seoKeywords, setSeoKeywords] = useState("");
 
-  const searchParams = useSearchParams();
-  
-  useEffect(() => {
-    // Load series for the dropdown
-    const token = api.getToken();
-    if (token) {
-      api.series.getAll().then(setSeriesList).catch(console.error);
-    }
-    
-    // Check for seriesId in URL
-    const sId = searchParams.get("seriesId");
-    if (sId) setSeriesId(sId);
-  }, [searchParams]);
+  const [activeTab, setActiveTab] = useState<"content" | "settings">("content");
 
-  const handleSubmit = async (isPublished: boolean) => {
+  useEffect(() => {
     const token = api.getToken();
     if (!token) {
       router.push("/login");
       return;
     }
 
-    setLoading(true);
+    // Handle pre-selected series from URL
+    const preSeriesId = searchParams.get("seriesId");
+    if (preSeriesId) {
+      setSeriesId(preSeriesId);
+    }
+
+    // Load series list for dropdown
+    api.series.getAll().then(setSeriesList).catch(console.error);
+  }, [router, searchParams]);
+
+  // Auto-generate slug from title
+  useEffect(() => {
+    if (!slug || slug === title.toLowerCase().replace(/[^a-z0-9]+/g, '-')) {
+      setSlug(title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+    }
+  }, [title]);
+
+  const handleSubmit = async (publish: boolean) => {
+    const token = api.getToken();
+    if (!token) return;
+
+    if (!title || !content) {
+      alert("Please fill in the title and content");
+      return;
+    }
+
+    setSaving(true);
     try {
       await api.posts.create(
         {
@@ -56,7 +82,7 @@ export default function NewPostPage() {
           category,
           excerpt,
           content,
-          is_published: isPublished,
+          is_published: publish,
           cover_image_url: coverImageUrl,
           series_id: seriesId || null,
           series_order: seriesOrder,
@@ -66,142 +92,120 @@ export default function NewPostPage() {
         },
         token,
       );
-      router.push("/dashboard");
+      router.push("/dashboard/posts");
     } catch (err: any) {
       alert(err.message || "Failed to create post");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  // Auto-generate slug and SEO from title
-  const handleTitleChange = (val: string) => {
-    setTitle(val);
-    setSlug(
-      val
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, ""),
-    );
-    if (!seoTitle) setSeoTitle(val);
-  };
-
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8">
+    <div className="space-y-10 pb-20">
       {/* Header */}
-      <header className="flex items-center gap-4">
-        <Link
-          href="/dashboard"
-          className="p-2 rounded-xl text-text-muted hover:text-surface-on hover:bg-surface-muted transition-all"
-        >
-          <ChevronLeft size={20} />
-        </Link>
-        <h1 className="text-2xl font-bold text-surface-on">Create New Post</h1>
+      <header className="flex items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard/posts"
+            className="p-3 rounded-2xl glass-panel text-tm hover:text-tp transition-all"
+          >
+            <ChevronLeft size={20} />
+          </Link>
+          <h1 className="dash-title">Draft <span className="text-orange">New Story</span></h1>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button
+            className="dash-btn-ghost !px-5 hidden sm:flex"
+            disabled={saving}
+            onClick={() => handleSubmit(false)}
+          >
+            <Save size={18} /> Save Draft
+          </button>
+          <button
+            className="btn-orange shadow-orange py-3 px-6"
+            disabled={saving}
+            onClick={() => handleSubmit(true)}
+          >
+            <Send size={18} /> Publish
+          </button>
+        </div>
       </header>
 
-      {/* Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 p-6 space-y-6">
-            {/* Title */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-surface-on">
-                Title
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-lg font-bold placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                placeholder="The Art of..."
-                value={title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-              />
-            </div>
-
-            {/* Content */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-surface-on">
-                Content (HTML Support)
-              </label>
-              <textarea
-                className="w-full min-h-[400px] p-4 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm font-mono placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
-                placeholder="Write your thoughts here..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
-            </div>
+      {/* Editor Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        {/* Main Writing Area */}
+        <div className="lg:col-span-8 space-y-8">
+          <div className="dash-card p-1">
+             <input
+              type="text"
+              placeholder="Enter your story title..."
+              className="w-full px-8 py-10 bg-transparent text-4xl md:text-5xl font-black text-tp placeholder:text-td border-none focus:outline-none tracking-tighter"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
 
-          {/* SEO Metadata */}
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 p-6 space-y-6">
-            <h2 className="text-lg font-bold text-surface-on flex items-center gap-2">
-              <Search size={20} className="text-primary" /> SEO & Search Settings
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">SEO Title</label>
-                <input 
-                  type="text"
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                  value={seoTitle}
-                  onChange={e => setSeoTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">SEO Keywords</label>
-                <input 
-                  type="text"
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                  placeholder="blog, design, code"
-                  value={seoKeywords}
-                  onChange={e => setSeoKeywords(e.target.value)}
-                />
-              </div>
+          <div className="dash-card min-h-[600px] flex flex-col">
+            <div className="px-8 py-4 border-b border-dash-border flex items-center justify-between text-xs font-black uppercase tracking-widest text-td">
+               <span>Main Content (HTML/Markdown Supported)</span>
+               <div className="flex items-center gap-4">
+                 <span>{content.length} characters</span>
+               </div>
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-text-faint">SEO Description</label>
-              <textarea 
-                className="w-full h-24 px-4 py-2.5 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none"
-                placeholder="Meta description for search engines..."
-                value={seoDescription}
-                onChange={e => setSeoDescription(e.target.value)}
-              />
-            </div>
+            <textarea
+              placeholder="Begin your story here..."
+              className="flex-1 w-full p-8 bg-transparent text-lg text-tp placeholder:text-td focus:outline-none resize-none font-medium leading-relaxed"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+            />
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div>
-          <div className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 sticky top-8">
-            <div className="p-6 border-b border-border">
-              <h2 className="text-lg font-bold text-surface-on">
-                Post Settings
-              </h2>
-            </div>
-            <div className="p-6 space-y-5">
-              {/* Cover Image */}
+        {/* Settings Sidebar */}
+        <div className="lg:col-span-4 sticky top-[100px] space-y-6">
+          {/* Metadata Card */}
+          <div className="dash-card p-8">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-td mb-8 flex items-center gap-2">
+              <Settings2 size={14} className="text-orange" /> Post Settings
+            </h3>
+
+            <div className="space-y-6">
+              {/* Category */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
-                  <ImageIcon size={14} /> Cover Image URL
+                <label className="text-[10px] font-black uppercase tracking-widest text-td flex items-center gap-2">
+                  <Hash size={12} /> Category
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  placeholder="e.g. Design, Tech"
+                  className="w-full px-4 py-3 rounded-xl glass-panel text-sm text-tp focus:border-orange/50 focus:outline-none"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                />
+              </div>
+
+              {/* Cover Image */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-td flex items-center gap-2">
+                  <ImageIcon size={12} /> Cover Image URL
+                </label>
+                <input
+                  type="text"
                   placeholder="https://..."
+                  className="w-full px-4 py-3 rounded-xl glass-panel text-sm text-tp focus:border-orange/50 focus:outline-none"
                   value={coverImageUrl}
                   onChange={(e) => setCoverImageUrl(e.target.value)}
                 />
               </div>
 
               {/* Series Integration */}
-              <div className="pt-4 border-t border-border space-y-4">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
-                  <ListOrdered size={14} /> Series
+              <div className="space-y-4 pt-4 border-t border-dash-border">
+                <label className="text-[10px] font-black uppercase tracking-widest text-td flex items-center gap-2">
+                  <ListOrdered size={12} /> Series Integration
                 </label>
                 <select
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 rounded-xl glass-panel text-sm text-tp focus:border-orange/50 focus:outline-none appearance-none cursor-pointer"
                   value={seriesId}
                   onChange={(e) => setSeriesId(e.target.value)}
                 >
@@ -213,78 +217,70 @@ export default function NewPostPage() {
 
                 {seriesId && (
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-text-faint">Order in Series</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-td">Order in Series</label>
                     <input
                       type="number"
-                      className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                      className="w-full px-4 py-3 rounded-xl glass-panel text-sm text-tp focus:border-orange/50 focus:outline-none"
                       value={seriesOrder}
                       onChange={(e) => setSeriesOrder(parseInt(e.target.value) || 0)}
                     />
                   </div>
                 )}
               </div>
+            </div>
+          </div>
 
-              {/* Slug */}
-              <div className="pt-4 border-t border-border space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">
-                  Slug
-                </label>
-                <input
+          {/* SEO Card */}
+          <div className="dash-card p-8">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-td mb-8 flex items-center gap-2">
+              <Search size={14} className="text-orange" /> SEO Optimization
+            </h3>
+
+            <div className="space-y-6">
+               <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-td">SEO Title</label>
+                <input 
                   type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl glass-panel text-sm text-tp focus:border-orange/50 focus:outline-none"
+                  value={seoTitle}
+                  onChange={e => setSeoTitle(e.target.value)}
                 />
               </div>
-
-              {/* Category */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint flex items-center gap-2">
-                  <Hash size={14} /> Category
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                  placeholder="e.g. Technology"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                <label className="text-[10px] font-black uppercase tracking-widest text-td">SEO Description</label>
+                <textarea 
+                  className="w-full h-24 px-4 py-3 rounded-xl glass-panel text-sm text-tp focus:border-orange/50 focus:outline-none resize-none"
+                  value={seoDescription}
+                  onChange={e => setSeoDescription(e.target.value)}
                 />
               </div>
+            </div>
+          </div>
 
-              {/* Excerpt */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-faint">
-                  Excerpt
-                </label>
-                <textarea
-                  className="w-full h-24 px-3 py-2 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on text-sm placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
-                  placeholder="Short summary..."
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="pt-4 space-y-3">
-                <button
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                  onClick={() => handleSubmit(true)}
-                >
-                  <Send size={16} /> Publish Now
-                </button>
-                <button
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface-alt dark:bg-[#0B1120] text-surface-on font-semibold text-sm hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                  onClick={() => handleSubmit(false)}
-                >
-                  <Save size={16} /> Save Draft
-                </button>
-              </div>
+          {/* Advanced Settings */}
+          <div className="dash-card p-6 bg-orange/5 border-orange/20">
+            <p className="text-[10px] font-black text-orange uppercase tracking-widest mb-1">Advanced Settings</p>
+            <div className="space-y-2">
+               <label className="text-[10px] font-bold text-tm uppercase">Custom Slug</label>
+               <input 
+                type="text"
+                placeholder="custom-url-slug"
+                className="w-full px-3 py-2 rounded-lg bg-bg/50 border border-dash-border text-xs text-tp focus:border-orange/30 focus:outline-none"
+                value={slug}
+                onChange={e => setSlug(e.target.value)}
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewPostPage() {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center text-tm">Loading Editor...</div>}>
+      <NewPostContent />
+    </Suspense>
   );
 }

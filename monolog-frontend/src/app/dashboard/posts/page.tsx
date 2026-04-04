@@ -2,22 +2,27 @@
 
 import { api } from "@/lib/api";
 import {
-  ChevronLeft,
-  Edit,
+  Edit3,
   ExternalLink,
   FileText,
   Plus,
   Trash2,
+  Search,
+  Filter,
+  Calendar,
+  Hash,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 
 export default function PostManagementPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = api.getToken();
@@ -39,6 +44,21 @@ export default function PostManagementPage() {
     loadPosts();
   }, [router]);
 
+  useEffect(() => {
+    if (!loading && containerRef.current) {
+      const ctx = gsap.context(() => {
+        gsap.from(".post-row", {
+          x: -20,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.05,
+          ease: "power2.out",
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [loading]);
+
   const handleDelete = async (id: string) => {
     const token = api.getToken();
     if (!token || !confirm("Are you sure you want to delete this post?"))
@@ -53,111 +73,132 @@ export default function PostManagementPage() {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-8">
+    <div ref={containerRef} className="space-y-10 pb-20">
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="p-2 rounded-xl text-text-muted hover:text-surface-on hover:bg-surface-muted transition-all"
-          >
-            <ChevronLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-surface-on">
-              Manage Articles
-            </h1>
-            <p className="text-text-muted text-sm">
-              Organize and edit your blog content.
-            </p>
-          </div>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="dash-title">Manage <span className="text-orange">Articles</span></h1>
+          <p className="text-tm max-w-md text-sm">
+            Review, edit, and organize your published and draft stories.
+          </p>
         </div>
         <Link
           href="/dashboard/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm shadow-blue hover:bg-primary-hover transition-all"
+          className="btn-orange shadow-orange py-3.5 px-6"
         >
-          <Plus size={16} /> New Post
+          <Plus size={18} /> New Article
         </Link>
       </header>
 
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-2 rounded-2xl glass-panel">
+        <div className="flex-1 min-w-[240px] relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-td" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search articles..."
+            className="w-full pl-12 pr-4 py-3 bg-transparent text-sm text-tp focus:outline-none"
+          />
+        </div>
+        <div className="flex items-center gap-2 pr-2">
+          <button className="dash-btn-ghost !py-2.5">
+            <Filter size={16} /> Filter
+          </button>
+          <div className="h-6 w-[1px] bg-dash-border mx-1" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-td px-2">
+            {posts.length} Total
+          </p>
+        </div>
+      </div>
+
       {/* Content */}
       {error ? (
-        <div className="p-8 text-center bg-error/8 border border-error/20 text-error rounded-2xl font-medium">
+        <div className="p-8 text-center bg-error/10 border border-error/20 text-error rounded-[2rem] font-bold">
           {error}
         </div>
       ) : loading ? (
         <div className="space-y-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 skeleton rounded-2xl" />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-24 skeleton rounded-[2rem]" />
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {posts.map((post) => (
             <div
               key={post.id}
-              className="rounded-2xl border border-border bg-white dark:bg-[#0F172A] shadow-level-1 overflow-hidden group hover:border-primary/30 transition-all"
+              className="post-row group rounded-[2rem] border border-dash-border bg-dash-card hover:border-orange/30 hover:bg-orange/5 transition-all"
             >
-              <div className="flex flex-col md:flex-row md:items-center justify-between p-5 gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-6">
                 {/* Post info */}
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <FileText size={18} />
+                <div className="flex items-center gap-6 flex-1 min-w-0">
+                  <div className="w-14 h-14 rounded-2xl bg-surface-muted border border-dash-border flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    {post.cover_image_url ? (
+                      <img src={post.cover_image_url} className="w-full h-full object-cover rounded-2xl grayscale group-hover:grayscale-0 transition-all" />
+                    ) : (
+                      <FileText size={20} className="text-orange" />
+                    )}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-surface-on group-hover:text-primary transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-black text-tp group-hover:text-orange transition-colors truncate">
                       {post.title}
                     </h3>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
+                    <div className="flex flex-wrap items-center gap-4 mt-2">
                       <span
                         className={
                           post.is_published
-                            ? "px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                            : "px-2 py-0.5 rounded-full bg-surface-muted text-text-muted border border-border"
+                            ? "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                            : "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-dash-hover text-tm border border-dash-border"
                         }
                       >
                         {post.is_published ? "Published" : "Draft"}
                       </span>
-                      <span>{post.category}</span>
-                      <span>•</span>
-                      <span>
-                        {new Date(post.created_at).toLocaleDateString()}
+                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-td uppercase tracking-wider">
+                        <Hash size={12} /> {post.category || "General"}
+                      </span>
+                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-td uppercase tracking-wider">
+                        <Calendar size={12} /> {new Date(post.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1 self-end md:self-center">
+                <div className="flex items-center gap-2">
                   <Link
-                    href={`/post/${post.slug}`}
+                    href={`/posts/${post.slug}`}
                     target="_blank"
-                    className="p-2 rounded-lg text-text-muted hover:text-surface-on hover:bg-surface-muted transition-all"
-                    title="View Public Post"
+                    className="p-3 rounded-xl text-tm hover:text-orange hover:bg-orange/10 transition-all"
+                    title="View Public"
                   >
-                    <ExternalLink size={16} />
+                    <ExternalLink size={18} />
                   </Link>
                   <Link
                     href={`/dashboard/posts/${post.id}`}
-                    className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-all"
-                    title="Edit Content"
+                    className="p-3 rounded-xl text-orange hover:bg-orange/10 transition-all font-bold text-sm flex items-center gap-2"
                   >
-                    <Edit size={16} />
+                    <Edit3 size={18} /> <span className="hidden sm:inline">Edit</span>
                   </Link>
                   <button
                     onClick={() => handleDelete(post.id)}
-                    className="p-2 rounded-lg text-error hover:bg-error/10 transition-all"
-                    title="Delete Forever"
+                    className="p-3 rounded-xl text-td hover:text-error hover:bg-error/10 transition-all"
+                    title="Delete"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
             </div>
           ))}
+          
           {posts.length === 0 && (
-            <div className="text-center py-20 text-text-faint">
-              No articles found. Start writing your first story!
+            <div className="text-center py-32 rounded-[3rem] border-2 border-dashed border-dash-border">
+              <p className="text-td font-black uppercase tracking-widest text-sm">
+                No stories found
+              </p>
+              <Link href="/dashboard/new" className="text-orange font-bold text-sm hover:underline mt-2 inline-block">
+                Start writing your first one ↗
+              </Link>
             </div>
           )}
         </div>
