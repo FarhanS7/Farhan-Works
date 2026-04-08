@@ -258,7 +258,7 @@ export default function HomePage() {
             <div className="featured-meta">
               <div className="meta-avatar">{featured?.author?.charAt(0) || "J"}</div>
               <div className="meta-info">
-                <div className="name">{featured?.author || "John Doe"}</div>
+                <div className="name">{featured?.author || "Farhan Shahriar"}</div>
                 <div className="date">{featuredDate}</div>
               </div>
               <div className="meta-time">⏱ {featuredReadTime}</div>
@@ -364,7 +364,7 @@ export default function HomePage() {
               readTime={`${Math.max(1, Math.ceil((post.content || post.excerpt || "").split(" ").length / 200))} min read`}
               category={post.category || "Uncategorized"}
               coverImage={post.cover_image_url}
-              author={post.author || "John Doe"}
+              author={post.author || "Farhan Shahriar"}
               imgClass={`card-img-${(i % 3) + 1}`}
             />
           ))}

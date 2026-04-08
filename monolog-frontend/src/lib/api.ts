@@ -123,8 +123,15 @@ export const api = {
       }),
   },
   setToken: (token: string | null) => {
-    if (token) localStorage.setItem("monolog_token", token);
-    else localStorage.removeItem("monolog_token");
+    if (typeof window !== "undefined") {
+      if (token) {
+        localStorage.setItem("monolog_token", token);
+        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
+      } else {
+        localStorage.removeItem("monolog_token");
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+      }
+    }
   },
   getToken: () =>
     typeof window !== "undefined"

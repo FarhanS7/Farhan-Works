@@ -34,7 +34,7 @@ export function PostCard({
   readTime,
   category,
   coverImage,
-  author = "John Doe",
+  author = "Farhan Shahriar",
   tags,
   mockText,
   imgClass,
