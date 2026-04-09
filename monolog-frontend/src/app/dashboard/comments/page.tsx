@@ -33,8 +33,9 @@ export default function ModerationPage() {
 
     async function loadComments() {
       try {
-        const data = await api.comments.getAdminList(token!);
-        setComments(data);
+        const response = await api.comments.getAdminList(token!);
+        // The API returns paginated data: { data: [...], pagination: {...} }
+        setComments(Array.isArray(response) ? response : (response.data || []));
       } catch (err: any) {
         setError(err.message);
       } finally {
