@@ -1,9 +1,9 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, ArrowUpRight, LogOut, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -16,17 +16,11 @@ const navLinks = [
 
 export function NavigationRail() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const lastY = useRef(0);
   const navHidden = useRef(false);
-
-  useEffect(() => {
-    setIsAdmin(!!api.getToken());
-  }, [pathname]);
 
   /* ── Init theme ── */
   useEffect(() => {
@@ -67,11 +61,7 @@ export function NavigationRail() {
     localStorage.setItem("inneraktive_theme", next);
   };
 
-  const handleLogout = () => {
-    api.setToken(null);
-    setIsAdmin(false);
-    router.push("/");
-  };
+
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -100,16 +90,7 @@ export function NavigationRail() {
               </Link>
             </li>
           ))}
-          {isAdmin && (
-            <li>
-              <Link
-                href="/dashboard"
-                className={pathname.startsWith("/dashboard") ? "active" : ""}
-              >
-                Dashboard
-              </Link>
-            </li>
-          )}
+
         </ul>
 
         {/* Right side (Desktop) */}
@@ -125,15 +106,7 @@ export function NavigationRail() {
             </div>
           </button>
 
-          {isAdmin ? (
-            <button onClick={handleLogout} className="btn-orange">
-              Sign Out
-            </button>
-          ) : (
-            <Link href="/login" className="btn-orange">
-              Get Started <span className="arrow-c">↗</span>
-            </Link>
-          )}
+
         </div>
 
         {/* Mobile Toggle */}
@@ -195,39 +168,12 @@ export function NavigationRail() {
                     </Link>
                   </li>
                 ))}
-                {isAdmin && (
-                  <li>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`text-xl font-syne font-semibold block py-2 ${
-                        pathname.startsWith("/dashboard") ? "text-primary" : "text-tp"
-                      }`}
-                    >
-                      Dashboard
-                    </Link>
-                  </li>
-                )}
+
               </ul>
 
               <div className="absolute bottom-10 left-6 right-6 space-y-4">
                 <div className="h-[1px] bg-border w-full mb-6" />
-                {isAdmin ? (
-                  <button
-                    onClick={handleLogout}
-                    className="w-full btn-orange flex items-center justify-center gap-2"
-                  >
-                    <LogOut size={16} /> Sign Out
-                  </button>
-                ) : (
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full btn-orange flex items-center justify-center gap-2"
-                  >
-                    Get Started <ArrowUpRight size={16} />
-                  </Link>
-                )}
+
               </div>
             </motion.div>
           </motion.div>
