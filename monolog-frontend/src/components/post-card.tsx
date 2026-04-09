@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 interface PostCardProps {
   id: string;
@@ -46,13 +47,14 @@ export function PostCard({
 
   return (
     <Link href={`/posts/${slug || id}`} className="blog-card" style={{ textDecoration: "none" }}>
-      {/* ── Image ── */}
-      <div className={`card-image h-[120px] sm:h-[175px] ${imgCls}`}>
+      <div className={`card-image h-[120px] sm:h-[175px] ${imgCls} relative`}>
         {coverImage ? (
-          <img
+          <Image
             src={coverImage}
             alt={title}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 400px"
           />
         ) : (
           <div className="card-image-inner">

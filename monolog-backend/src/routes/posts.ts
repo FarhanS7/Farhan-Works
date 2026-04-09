@@ -1,6 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { query } from "../lib/db.js";
+import { getCache, setCache, invalidateCache } from "../lib/cache.js";
 import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -32,6 +33,10 @@ const updatePostSchema = createPostSchema.partial();
 // Public: Get all published posts with counts
 router.get("/", async (_req, res) => {
   try {
+    const cacheKey = "posts:public:list";
+    const cached = await getCache(cacheKey);
+    if (cached) return res.json(cached);
+
     const result = await query(`
       SELECT
         p.id, p.title, p.slug, p.excerpt, p.category, p.published_at, p.cover_image_url,
@@ -52,6 +57,8 @@ router.get("/", async (_req, res) => {
       WHERE p.is_published = TRUE
       ORDER BY p.published_at DESC
     `);
+    
+    await setCache(cacheKey, result.rows, 300); // 5 minutes
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching posts:", err);
@@ -90,6 +97,10 @@ router.get("/admin/:id", authenticateToken, async (req, res) => {
 router.get("/:id_or_slug", async (req, res) => {
   const { id_or_slug } = req.params;
   try {
+    const cacheKey = `posts:public:detail:${id_or_slug}`;
+    const cached = await getCache(cacheKey);
+    if (cached) return res.json(cached);
+
     const result = await query(
       `SELECT p.*, s.title as series_title, s.slug as series_slug 
        FROM posts p 
@@ -122,6 +133,7 @@ router.get("/:id_or_slug", async (req, res) => {
       };
     }
     
+    await setCache(cacheKey, post, 600); // 10 minutes for detail
     res.json(post);
   } catch (err) {
     console.error("Error fetching post detail:", err);
@@ -156,6 +168,10 @@ router.post("/", authenticateToken, async (req, res) => {
         seo_title || null, seo_description || null, seo_keywords || null
       ],
     );
+
+    // Invalidate caches
+    await invalidateCache("posts:public:*");
+
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
     if (err.code === "23505") {
@@ -202,6 +218,10 @@ router.put("/:id", authenticateToken, async (req, res) => {
     );
     if (result.rows.length === 0)
       return res.status(404).json({ message: "Post not found" });
+
+    // Invalidate caches
+    await invalidateCache("posts:public:*");
+
     res.json(result.rows[0]);
   } catch (err: any) {
     if (err.code === "23505") {
@@ -219,6 +239,10 @@ router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     await query("DELETE FROM posts WHERE id = $1", [id]);
+    
+    // Invalidate caches
+    await invalidateCache("posts:public:*");
+
     res.json({ message: "Post deleted" });
   } catch (err) {
     console.error("Error deleting post:", err);
@@ -240,6 +264,10 @@ router.post("/reorder", authenticateToken, async (req, res) => {
         order.id,
       ]);
     }
+
+    // Invalidate caches
+    await invalidateCache("posts:public:*");
+
     res.json({ message: "Posts reordered successfully" });
   } catch (err) {
     console.error("Error reordering posts:", err);

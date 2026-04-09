@@ -1,6 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { query } from '../lib/db.js';
+import { getCache, setCache, invalidateCache } from "../lib/cache.js";
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -18,6 +19,10 @@ const seriesSchema = z.object({
 // Public: Get all series
 router.get('/', async (_req, res) => {
   try {
+    const cacheKey = "series:public:list";
+    const cached = await getCache(cacheKey);
+    if (cached) return res.json(cached);
+
     const result = await query(`
       SELECT s.*, count(p.id)::int as post_count
       FROM series s
@@ -25,6 +30,8 @@ router.get('/', async (_req, res) => {
       GROUP BY s.id
       ORDER BY s.created_at DESC
     `);
+    
+    await setCache(cacheKey, result.rows, 600); // 10 minutes
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching series:', err);
@@ -47,6 +54,10 @@ router.get('/admin/list', authenticateToken, async (_req, res) => {
 router.get('/:id_or_slug', async (req, res) => {
   const { id_or_slug } = req.params;
   try {
+    const cacheKey = `series:public:detail:${id_or_slug}`;
+    const cached = await getCache(cacheKey);
+    if (cached) return res.json(cached);
+
     const seriesResult = await query(
       'SELECT * FROM series WHERE id::text = $1 OR slug = $1',
       [id_or_slug]
@@ -59,7 +70,9 @@ router.get('/:id_or_slug', async (req, res) => {
       [series.id]
     );
     
-    res.json({ ...series, posts: postsResult.rows });
+    const response = { ...series, posts: postsResult.rows };
+    await setCache(cacheKey, response, 600); // 10 minutes
+    res.json(response);
   } catch (err) {
     console.error('Error fetching series detail:', err);
     res.status(500).json({ message: 'Error fetching series' });
@@ -79,6 +92,10 @@ router.post('/', authenticateToken, async (req, res) => {
       'INSERT INTO series (title, slug, description, cover_image_url, seo_title, seo_description, seo_keywords) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
       [title, slug, description, cover_image_url || null, seo_title || null, seo_description || null, seo_keywords || null]
     );
+
+    // Invalidate caches
+    await invalidateCache("series:public:*");
+
     res.status(201).json(result.rows[0]);
   } catch (err: any) {
     if (err.code === '23505') {
@@ -104,6 +121,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
       [title, slug, description, cover_image_url || null, seo_title || null, seo_description || null, seo_keywords || null, id]
     );
     if (result.rows.length === 0) return res.status(404).json({ message: 'Series not found' });
+
+    // Invalidate caches
+    await invalidateCache("series:public:*");
+
     res.json(result.rows[0]);
   } catch (err: any) {
     if (err.code === '23505') {
@@ -119,6 +140,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   try {
     await query('DELETE FROM series WHERE id = $1', [id]);
+
+    // Invalidate caches
+    await invalidateCache("series:public:*");
+
     res.json({ message: 'Series deleted' });
   } catch (err) {
     console.error('Error deleting series:', err);

@@ -121,8 +121,9 @@ router.patch("/:id/approve", authenticateToken, async (req, res) => {
     if (result.rows.length === 0)
       return res.status(404).json({ message: "Comment not found" });
 
-    // Invalidate analytics cache - engagement rate changed
+    // Invalidate analytics and posts cache - engagement/counts changed
     await invalidateCache("analytics:*");
+    await invalidateCache("posts:public:*");
 
     res.json({ message: "Comment approved" });
   } catch (err) {
@@ -137,8 +138,9 @@ router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     await query("DELETE FROM comments WHERE id = $1", [id]);
 
-    // Invalidate analytics cache - comment count and engagement changed
+    // Invalidate analytics and posts cache - counts changed
     await invalidateCache("analytics:*");
+    await invalidateCache("posts:public:*");
 
     res.json({ message: "Comment deleted" });
   } catch (err) {
