@@ -227,7 +227,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ FEATURED ═══ */}
-      <div className="featured-wrap" ref={featRef}>
+      <div className="container-px" ref={featRef} style={{ marginBottom: 60 }}>
         <div className="featured-card">
           <div className="featured-image">
             <div className="feat-img-bg">
@@ -269,7 +269,7 @@ export default function HomePage() {
 
       {/* ═══ FEATURED SERIES ═══ */}
       {series.length > 0 && (
-        <div className="px-[60px] mb-16" style={{ maxWidth: 1100, marginLeft: "auto", marginRight: "auto" }}>
+        <div className="container-px mb-16">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-black text-tp tracking-tight">Curated <span className="text-orange">Collections</span></h2>
@@ -280,7 +280,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {series.slice(0, 3).map((s, i) => (
               <Link 
                 key={s.id} 
@@ -302,16 +302,16 @@ export default function HomePage() {
                    <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/20 to-transparent opacity-60" />
                 </div>
                 
-                <div className="p-8 relative">
+                <div className="p-6 sm:p-8 relative">
                   <div className="flex items-center gap-3 mb-4">
                      <span className="px-3 py-1 rounded-full bg-orange/10 border border-orange/20 text-[10px] font-black text-orange uppercase tracking-widest">
                        {s.post_count || 0} Articles
                      </span>
                   </div>
-                  <h3 className="text-xl font-black text-tp group-hover:text-orange transition-colors mb-3 tracking-tight leading-tight">
+                  <h3 className="text-lg sm:text-xl font-black text-tp group-hover:text-orange transition-colors mb-2 sm:mb-3 tracking-tight leading-tight">
                     {s.title}
                   </h3>
-                  <p className="text-sm text-tm line-clamp-2 mb-6">
+                  <p className="text-xs sm:text-sm text-tm line-clamp-2 mb-4 sm:mb-6">
                     {s.description || "Exploration of concepts and implementations in this specialized series."}
                   </p>
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-td group-hover:text-tp transition-all">
@@ -339,14 +339,14 @@ export default function HomePage() {
           {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonCard key={i} />)}
         </div>
       ) : error ? (
-        <div style={{ padding: "0 60px", marginBottom: 46 }}>
+        <div className="container-px" style={{ marginBottom: 46 }}>
           <div style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 16, padding: "32px", textAlign: "center" }}>
             <p style={{ fontWeight: 600, color: "#ef4444" }}>Could not load posts.</p>
             <p style={{ marginTop: 4, fontSize: 13, color: "var(--tm)" }}>{error}</p>
           </div>
         </div>
       ) : posts.length === 0 ? (
-        <div style={{ padding: "0 60px", marginBottom: 46 }}>
+        <div className="container-px" style={{ marginBottom: 46 }}>
           <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: "48px", textAlign: "center", color: "var(--tm)" }}>
             No posts yet. Check back soon.
           </div>

@@ -71,7 +71,7 @@ function PostsContent() {
 
   return (
     <div className="bg-canvas">
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 md:py-14">
+      <div className="container-px space-y-8 py-10 md:py-14">
         <header className="rounded-3xl border border-border/75 bg-surface/80 p-7 shadow-level-1 backdrop-blur-xl md:p-9">
           <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             <BookOpen size={13} />
@@ -140,7 +140,7 @@ function PostsContent() {
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <SkeletonCard key={i} />
             ))}
@@ -161,7 +161,7 @@ function PostsContent() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {displayed.map((post) => (
               <PostCard
                 key={post.id}
@@ -190,12 +190,12 @@ export default function PostsPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+        <div className="container-px py-14">
           <div className="space-y-2 mb-10">
             <div className="h-3.5 w-24 skeleton rounded" />
             <div className="h-10 w-64 skeleton rounded" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-64 skeleton rounded-2xl" />
             ))}

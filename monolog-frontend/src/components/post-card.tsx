@@ -47,7 +47,7 @@ export function PostCard({
   return (
     <Link href={`/posts/${slug || id}`} className="blog-card" style={{ textDecoration: "none" }}>
       {/* ── Image ── */}
-      <div className={`card-image ${imgCls}`}>
+      <div className={`card-image h-[120px] sm:h-[175px] ${imgCls}`}>
         {coverImage ? (
           <img
             src={coverImage}
@@ -64,27 +64,27 @@ export function PostCard({
       </div>
 
       {/* ── Body ── */}
-      <div className="card-body">
-        <div className="card-meta-top">
+      <div className="p-3 sm:p-5">
+        <div className="card-meta-top mb-1">
           <div className="card-author">
             <div className="author-avatar-sm">
               {author.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="author-name-sm">{author}</div>
-              <div className="author-date-sm">{date}</div>
+              <div className="author-name-sm text-[10px] sm:text-[11px]">{author}</div>
+              <div className="author-date-sm text-[9px] sm:text-[10px]">{date}</div>
             </div>
           </div>
-          <div className="card-arrow">↗</div>
+          <div className="card-arrow w-6 h-6 sm:w-7 sm:h-7 text-[10px] sm:text-[12px]">↗</div>
         </div>
 
-        <div className="read-time">⏱ {readTime}</div>
-        <div className="card-title">{title}</div>
-        <div className="card-desc">{excerpt}</div>
+        <div className="read-time text-[10px] sm:text-[11px] mb-1">⏱ {readTime}</div>
+        <div className="card-title text-[13px] sm:text-base line-clamp-2 leading-tight">{title}</div>
+        <div className="card-desc hidden sm:block text-[12px] line-clamp-2 mt-1">{excerpt}</div>
 
-        <div className="card-tags">
+        <div className="card-tags mt-2">
           {displayTags.map((tag) => (
-            <span key={tag} className="card-tag">
+            <span key={tag} className="card-tag py-0.5 px-2 text-[9px] sm:text-[10px]">
               {tag}
             </span>
           ))}

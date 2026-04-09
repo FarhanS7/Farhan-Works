@@ -108,7 +108,7 @@ export const revalidate = 3600;
 /* ── Skeleton loader component ──────────────────────────────────────── */
 function PostSkeleton() {
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+    <div className="container-px py-12 space-y-8">
       <div className="h-3 w-20 skeleton rounded" />
       <div className="space-y-2">
         <div className="h-8 w-5/6 skeleton rounded" />
@@ -196,7 +196,7 @@ export default async function PostPage({
           </div>
         )}
 
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 space-y-6 relative">
+        <div className="container-px pt-12 pb-10 space-y-6 relative">
           {/* Back link */}
           <div className="flex items-center justify-between">
             <Link
@@ -251,7 +251,7 @@ export default async function PostPage({
 
       {/* ── Article body ──────────────────────────────── */}
       <div className="bg-surface">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+        <div className="container-px py-12">
           {/* Series Navigator (Table of Contents) */}
           {post.series_nav && post.series_nav.all && (
             <div className="mb-12 rounded-[2.5rem] bg-surface border-2 border-primary/10 overflow-hidden shadow-level-2 ring-8 ring-primary/5">
@@ -382,7 +382,7 @@ export default async function PostPage({
 
       {/* ── Reactions + comments ──────────────────────── */}
       <div className="border-t border-border bg-surface-muted">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-12">
+        <div className="container-px py-12 space-y-12">
           {/* Reactions */}
           <section>
             <h3 className="text-xs font-bold text-text-faint uppercase tracking-widest mb-4">
@@ -401,7 +401,7 @@ export default async function PostPage({
 
       {/* ── Next article nudge ────────────────────────── */}
       <div className="border-t border-border bg-surface">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="container-px py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-text-muted text-sm">Enjoyed this article?</p>
           <Link
             href="/posts"
