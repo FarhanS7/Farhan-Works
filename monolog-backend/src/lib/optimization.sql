@@ -9,6 +9,8 @@ CREATE INDEX IF NOT EXISTS idx_series_slug ON series (slug);
 CREATE INDEX IF NOT EXISTS idx_posts_series_id ON posts (series_id);
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments (post_id);
 CREATE INDEX IF NOT EXISTS idx_views_post_id ON views (post_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_post_id ON reactions (post_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_ip_type ON reactions (ip_address, reaction_type);
 
 -- 3. Composite indexes for common filtering/sorting
 CREATE INDEX IF NOT EXISTS idx_posts_published_at ON posts (published_at DESC) WHERE is_published = TRUE;

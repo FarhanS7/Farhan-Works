@@ -42,7 +42,7 @@ export function PostsArchiveClient({ initialPosts }: PostsArchiveClientProps) {
       : filtered.filter((p) => p.category === activeCategory);
 
   return (
-    <div className="bg-canvas">
+    <div className="bg-bg">
       <div className="container-px space-y-8 py-10 md:py-14">
         <header className="rounded-3xl border border-border/75 bg-surface/80 p-7 shadow-level-1 backdrop-blur-xl md:p-9">
           <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
@@ -58,8 +58,8 @@ export function PostsArchiveClient({ initialPosts }: PostsArchiveClientProps) {
                 {initialPosts.length} {initialPosts.length === 1 ? "article" : "articles"} published
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-white">
-              <Flame size={13} />
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-orange/20">
+              <Flame size={12} fill="currentColor" />
               Curated feed
             </div>
           </div>
@@ -83,11 +83,11 @@ export function PostsArchiveClient({ initialPosts }: PostsArchiveClientProps) {
                 val ? url.searchParams.set("q", val) : url.searchParams.delete("q");
                 window.history.replaceState({}, "", url.toString());
               }}
-              className="w-full rounded-xl border border-border/80 bg-black/25 py-2.5 pl-10 pr-4 text-sm text-surface-on placeholder:text-text-faint transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+              className="w-full rounded-xl border border-border bg-surface-alt/50 py-2.5 pl-10 pr-4 text-sm text-tp placeholder:text-td transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
             />
           </div>
 
-          <button className="flex items-center gap-2 rounded-xl border border-border/80 bg-black/20 px-4 py-2.5 text-sm text-text-muted transition-all hover:border-primary/40 hover:text-primary">
+          <button className="flex items-center gap-2 rounded-xl border border-border bg-surface-alt px-4 py-2.5 text-sm text-tm transition-all hover:border-primary/40 hover:text-primary">
             <SlidersHorizontal size={15} /> Filter
           </button>
         </div>
@@ -100,8 +100,8 @@ export function PostsArchiveClient({ initialPosts }: PostsArchiveClientProps) {
                 onClick={() => setActiveCategory(cat)}
                 className={
                   activeCategory === cat
-                    ? "rounded-full border border-primary/50 bg-primary/20 px-4 py-1.5 text-xs font-semibold text-white shadow-blue transition-all"
-                    : "rounded-full border border-border/80 bg-black/20 px-4 py-1.5 text-xs font-medium text-text-muted transition-all hover:border-primary/40 hover:text-primary"
+                    ? "rounded-full border border-primary bg-primary px-5 py-2 text-xs font-bold text-white shadow-lg shadow-orange/20 transition-all scale-105"
+                    : "rounded-full border border-border bg-surface-alt px-5 py-2 text-xs font-medium text-tm transition-all hover:border-primary/40 hover:text-primary"
                 }
               >
                 {cat}

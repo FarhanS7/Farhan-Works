@@ -45,15 +45,17 @@ export function Reactions({ postId }: ReactionsProps) {
   useEffect(() => {
     api.reactions
       .getByPost(postId)
-      .then((data) => {
-        const mapped = (data as any[]).reduce(
-          (acc, cur) => {
+      .then((data: any) => {
+        const reactions = Array.isArray(data.reactions) ? data.reactions : [];
+        const mapped = reactions.reduce(
+          (acc: any, cur: any) => {
             acc[cur.reaction_type] = parseInt(cur.count);
             return acc;
           },
           { like: 0, heart: 0, clap: 0 },
         );
         setCounts(mapped);
+        setVoted(data.userReaction || null);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -61,12 +63,20 @@ export function Reactions({ postId }: ReactionsProps) {
 
   const handleReact = async (type: string) => {
     if (voted === type) return;
+
+    // Optimistic Update
+    const prevCounts = { ...counts };
+    const prevVoted = voted;
+
+    setCounts((prev) => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
+    setVoted(type);
+
     try {
       await api.reactions.submit(postId, type);
-      setCounts((prev) => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
-      setVoted(type);
     } catch (e: any) {
-      console.error(e);
+      console.error("Reaction failed, reverting state:", e);
+      setCounts(prevCounts);
+      setVoted(prevVoted);
     }
   };
 

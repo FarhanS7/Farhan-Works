@@ -14,9 +14,19 @@ const reactionSchema = z.object({
   }),
 });
 
-// Public: Get reactions for a post
+const getClientIp = (req: express.Request) => {
+  return (
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+    req.ip ||
+    "unknown"
+  );
+};
+
+// Public: Get reactions for a post + current user state
 router.get("/:post_id", async (req, res) => {
   const { post_id } = req.params;
+  const ip = getClientIp(req);
+
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
       post_id,
@@ -24,12 +34,22 @@ router.get("/:post_id", async (req, res) => {
   ) {
     return res.status(400).json({ message: "Invalid post ID format" });
   }
+
   try {
-    const result = await query(
+    const counts = await query(
       "SELECT reaction_type, COUNT(*) as count FROM reactions WHERE post_id = $1 GROUP BY reaction_type",
       [post_id],
     );
-    res.json(result.rows);
+
+    const userState = await query(
+      "SELECT reaction_type FROM reactions WHERE post_id = $1 AND ip_address = $2 LIMIT 1",
+      [post_id, ip],
+    );
+
+    res.json({
+      reactions: counts.rows,
+      userReaction: userState.rows[0]?.reaction_type || null,
+    });
   } catch (err) {
     console.error("Error fetching reactions:", err);
     res.status(500).json({ message: "Error fetching reactions" });
@@ -44,16 +64,13 @@ router.post("/", async (req, res) => {
   }
 
   const { post_id, type } = parsed.data;
-  const ip = (req as any).clientIp || "unknown";
+  const ip = getClientIp(req);
 
   try {
     await query(
       "INSERT INTO reactions (post_id, ip_address, reaction_type) VALUES ($1, $2, $3)",
       [post_id, ip, type],
     );
-
-    // Invalidate analytics cache - total reactions count changed
-    await invalidateCache("analytics:*");
 
     res.status(201).json({ message: "Reaction recorded" });
   } catch (err: any) {
