@@ -10,11 +10,12 @@ export function DeletePostButton({ id }: { id: string }) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    const token = api.getToken();
+    if (!token || !confirm("Are you sure you want to delete this post?")) return;
 
     setIsDeleting(true);
     try {
-      await api.posts.delete(id);
+      await api.posts.delete(id, token);
       router.refresh();
     } catch (err: any) {
       alert(err.message || "Failed to delete post");

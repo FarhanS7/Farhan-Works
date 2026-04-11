@@ -98,13 +98,16 @@ export function SortSeriesClient({ series }: { series: Series }) {
   };
 
   const handleSave = async () => {
+    const token = api.getToken();
+    if (!token) return;
+
     setSaving(true);
     try {
       const orders = posts.map((p, idx) => ({
         id: p.id,
         series_order: idx + 1
       }));
-      await api.posts.reorder(orders);
+      await api.posts.reorder(orders, token);
       router.push("/dashboard/series");
       router.refresh();
     } catch (err: any) {

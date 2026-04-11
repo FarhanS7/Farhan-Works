@@ -53,6 +53,9 @@ export function PostEditor({
       return;
     }
 
+    const token = api.getToken();
+    if (!token) return;
+
     setSaving(true);
     try {
       await api.posts.create({
@@ -68,7 +71,7 @@ export function PostEditor({
         seo_title: seoTitle,
         seo_description: seoDescription,
         seo_keywords: seoKeywords,
-      });
+      }, token);
       router.push("/dashboard/posts");
       router.refresh();
     } catch (err: any) {

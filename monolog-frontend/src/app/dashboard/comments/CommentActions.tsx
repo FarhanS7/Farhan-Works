@@ -10,9 +10,12 @@ export function CommentActions({ id, pending }: { id: string, pending: boolean }
   const [loading, setLoading] = useState<"approving" | "deleting" | null>(null);
 
   const handleApprove = async () => {
+    const token = api.getToken();
+    if (!token) return;
+
     setLoading("approving");
     try {
-      await api.comments.approve(id);
+      await api.comments.approve(id, token);
       router.refresh();
     } catch (err: any) {
       alert(err.message || "Failed to approve comment");
@@ -22,10 +25,12 @@ export function CommentActions({ id, pending }: { id: string, pending: boolean }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this comment permanently?")) return;
+    const token = api.getToken();
+    if (!token || !confirm("Delete this comment permanently?")) return;
+    
     setLoading("deleting");
     try {
-      await api.comments.delete(id);
+      await api.comments.delete(id, token);
       router.refresh();
     } catch (err: any) {
       alert(err.message || "Failed to delete comment");

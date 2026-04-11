@@ -22,7 +22,14 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
 export const api = {
   posts: {
-    getAll: () => fetchApi("/posts"),
+    getAll: (page?: number, limit?: number) => {
+      let endpoint = "/posts";
+      const params = [];
+      if (page) params.push(`page=${page}`);
+      if (limit) params.push(`limit=${limit}`);
+      if (params.length > 0) endpoint += `?${params.join("&")}`;
+      return fetchApi(endpoint);
+    },
     getAdminList: (token: string) =>
       fetchApi("/posts/admin/list", {
         headers: { Authorization: `Bearer ${token}` },

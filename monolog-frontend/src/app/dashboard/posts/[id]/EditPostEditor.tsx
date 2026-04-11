@@ -42,6 +42,9 @@ export function EditPostEditor({
   const [seoKeywords, setSeoKeywords] = useState(initialPost.seo_keywords || "");
 
   const handleSubmit = async (publish: boolean) => {
+    const token = api.getToken();
+    if (!token) return;
+
     setSaving(true);
     try {
       await api.posts.update(initialPost.id, {
@@ -57,7 +60,7 @@ export function EditPostEditor({
         seo_title: seoTitle,
         seo_description: seoDescription,
         seo_keywords: seoKeywords,
-      });
+      }, token);
       router.push("/dashboard/posts");
       router.refresh();
     } catch (err: any) {
@@ -68,9 +71,10 @@ export function EditPostEditor({
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this story?")) return;
+    const token = api.getToken();
+    if (!token || !confirm("Are you sure you want to delete this story?")) return;
     try {
-      await api.posts.delete(initialPost.id);
+      await api.posts.delete(initialPost.id, token);
       router.push("/dashboard/posts");
       router.refresh();
     } catch (err: any) {
