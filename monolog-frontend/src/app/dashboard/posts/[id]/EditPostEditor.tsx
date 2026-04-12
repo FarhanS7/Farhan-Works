@@ -13,6 +13,7 @@ import {
   Settings2,
   X
 } from "lucide-react";
+import QuillEditor from "@/components/quill-editor";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -136,11 +137,13 @@ export function EditPostEditor({
                <span>Main Content</span>
                <span>Status: {isPublished ? "Live" : "Draft"}</span>
             </div>
-            <textarea
-              className="flex-1 w-full p-8 bg-transparent text-lg text-tp placeholder:text-td focus:outline-none resize-none font-medium leading-relaxed"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
+            <div className="flex-1 flex flex-col">
+              <QuillEditor
+                value={content}
+                onChange={setContent}
+                placeholder="Begin your story here..."
+              />
+            </div>
           </div>
         </div>
 

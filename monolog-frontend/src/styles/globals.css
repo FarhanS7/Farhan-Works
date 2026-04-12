@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+@import 'react-quill-new/dist/quill.snow.css';
+
+/* ═ Quill Snow Theme Overrides ═ */
+.quill-editor-wrapper {
+  --quill-border: rgba(255, 255, 255, 0.08);
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+}
+
+.quill-editor-wrapper .ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid var(--quill-border) !important;
+  padding: 1.5rem 2rem !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+}
+
+.quill-editor-wrapper .ql-snow .ql-stroke { stroke: var(--tm) !important; }
+.quill-editor-wrapper .ql-snow .ql-fill { fill: var(--tm) !important; }
+.quill-editor-wrapper .ql-snow .ql-picker { color: var(--tm) !important; }
+
+.quill-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+.quill-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: var(--orange) !important;
+}
+
+.quill-editor-wrapper .ql-container.ql-snow {
+  border: none !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.quill-editor-wrapper .ql-editor {
+  padding: 2rem !important;
+  flex: 1 !important;
+  min-height: 500px !important;
+  color: var(--tp) !important;
+  font-size: 1.125rem !important;
+  line-height: 1.8 !important;
+}
+
+.quill-editor-wrapper .ql-editor.ql-blank::before {
+  color: var(--td) !important;
+  left: 2rem !important;
+  opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .quill-editor-wrapper .ql-snow .ql-picker-options {
+  background-color: #1a1a24 !important;
+  border-color: var(--quill-border) !important;
+  color: var(--tp) !important;
+}
+
+
 /* ═══════════════════════════════════════════════════════════
    INNERAKTIVE — Theme Tokens
    ═══════════════════════════════════════════════════════════ */
@@ -536,13 +593,79 @@ body {
 }
 
 /* ── Article content (for post pages) ────────────────────── */
-.article-content { line-height: 1.85; font-size: 1.0625rem; color: var(--tp); }
-.article-content h2 { font-size: 1.5rem; margin-top: 2.25rem; margin-bottom: .875rem; font-weight: 700; }
-.article-content h3 { font-size: 1.25rem; margin-top: 2.25rem; margin-bottom: .875rem; font-weight: 700; }
-.article-content p { margin-bottom: 1.375rem; color: var(--tm); }
-.article-content a { color: var(--orange); text-decoration: underline; text-underline-offset: 3px; }
-.article-content ul, .article-content ol { padding-left: 1.625rem; margin-bottom: 1.375rem; color: var(--tm); }
-.article-content li { margin-bottom: .5rem; }
+.article-content { 
+  line-height: 1.85; 
+  font-size: 1.0625rem; 
+  color: var(--tp); 
+}
+
+
+.article-content h2 { 
+  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-size: 1.75rem; 
+  margin-top: 3rem; 
+  margin-bottom: 1rem; 
+  font-weight: 800; 
+  letter-spacing: -0.02em;
+  color: var(--tp);
+  line-height: 1.3;
+}
+
+.article-content h3 { 
+  font-family: var(--font-syne), 'Syne', sans-serif;
+  font-size: 1.375rem; 
+  margin-top: 2.5rem; 
+  margin-bottom: 1rem; 
+  font-weight: 700;
+  color: var(--tp);
+  line-height: 1.4;
+}
+
+.article-content p { 
+  margin-bottom: 1.5rem; 
+  color: var(--tp); 
+  opacity: 0.92;
+}
+
+.article-content a { 
+  color: var(--orange); 
+  text-decoration: underline; 
+  text-underline-offset: 4px; 
+  font-weight: 500;
+  transition: opacity .2s;
+}
+.article-content a:hover { opacity: 0.8; }
+
+.article-content ul, .article-content ol {
+  margin: 1.5rem 0;
+  padding-left: 1.5rem !important;
+  color: var(--tp);
+  opacity: 0.92;
+}
+
+.article-content ul { 
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+}
+
+.article-content ol { 
+  list-style-type: decimal !important;
+  list-style-position: outside !important;
+}
+
+.article-content li { 
+  margin-bottom: 0.625rem; 
+  padding-left: 0.25rem;
+  display: list-item !important;
+}
+
+.article-content li::marker {
+  color: var(--orange);
+  font-weight: bold;
+}
+
+
+
 .article-content blockquote {
   border-left: 3px solid var(--orange); padding: .75rem 1.25rem;
   margin: 2rem 0; background: rgba(242,101,34,.06); border-radius: 0 8px 8px 0;

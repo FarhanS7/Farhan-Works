@@ -154,6 +154,12 @@ export default async function PostPage({
   const wordCount = (post.content || "").split(/\s+/).filter(Boolean).length;
   const readMinutes = Math.max(1, Math.ceil(wordCount / 200));
 
+  // Fix Quill editor inserting &nbsp; between every word, which prevents text wrapping
+  const sanitizedContent = (post.content || "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\u00A0/g, " ");
+
+
   return (
     <>
       {/* SEO/Structured Data */}
@@ -196,206 +202,193 @@ export default async function PostPage({
           </div>
         )}
 
-        <div className="container-px pt-12 pb-10 space-y-6 relative">
-          {/* Back link */}
-          <div className="flex items-center justify-between">
-            <Link
-              href="/posts"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-primary transition-colors"
-            >
-              <ArrowLeft size={15} /> All Articles
-            </Link>
-
-            {/* Series Badge */}
-            {post.series_title && (
+        <div className="container-px pt-12 pb-10 relative">
+          <div style={{ maxWidth: '820px', width: '100%', marginLeft: 'auto', marginRight: 'auto' }} className="space-y-8">
+            {/* Back link */}
+            <div className="flex items-center justify-between">
               <Link
-                href={`/series/${post.series_slug}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+                href="/posts"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-primary transition-colors"
               >
-                Part of: {post.series_title}
+                <ArrowLeft size={15} /> All Articles
               </Link>
-            )}
-          </div>
 
-          {/* Category */}
-          {post.category && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-surface-muted text-primary border border-border">
-              {post.category}
-            </span>
-          )}
+              {/* Series Badge */}
+              {post.series_title && (
+                <Link
+                  href={`/series/${post.series_slug}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+                >
+                  Part of: {post.series_title}
+                </Link>
+              )}
+            </div>
 
-          {/* Title */}
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-surface-on leading-[1.15]">
-            {post.title}
-          </h1>
+            <div className="space-y-4">
+              {/* Category */}
+              {post.category && (
+                <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-primary/5 text-primary border border-primary/20">
+                  {post.category}
+                </span>
+              )}
 
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
-            <span className="flex items-center gap-1.5">
-              <User size={14} /> Farhan
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} />
-              {new Date(post.published_at).toLocaleDateString(undefined, {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock size={14} /> {readMinutes} min read
-            </span>
+              {/* Title */}
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-surface-on leading-[1.1]">
+                {post.title}
+              </h1>
+
+              {/* Meta row */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-muted pt-2 border-t border-border/50">
+                <span className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">F</div> 
+                  Farhan
+                </span>
+                <span className="flex items-center gap-2">
+                  <Calendar size={14} className="text-primary/60" />
+                  {new Date(post.published_at).toLocaleDateString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Clock size={14} className="text-primary/60" /> {readMinutes} min read
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
       {/* ── Article body ──────────────────────────────── */}
       <div className="bg-surface">
-        <div className="container-px py-12">
-          {/* Series Navigator (Table of Contents) */}
-          {post.series_nav && post.series_nav.all && (
-            <div className="mb-12 rounded-[2.5rem] bg-surface border-2 border-primary/10 overflow-hidden shadow-level-2 ring-8 ring-primary/5">
-              <div className="bg-primary px-8 py-5 flex items-center justify-between">
-                <div className="flex items-center gap-3 text-white">
-                  <Layers size={20} className="text-white/80" />
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 leading-none mb-1">
-                      Learning Series
-                    </h4>
-                    <p className="text-sm font-black tracking-tight">
-                      {post.series_title}
-                    </p>
+        <div className="container-px py-16">
+          <div style={{ maxWidth: '820px', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
+            {/* Series Navigator (Table of Contents) */}
+            {post.series_nav && post.series_nav.all && (
+              <div className="mb-16 rounded-3xl bg-surface border border-border overflow-hidden shadow-level-1 ring-1 ring-border mt-[-2rem]">
+                <div className="bg-surface-muted px-8 py-5 flex items-center justify-between border-b border-border">
+                  <div className="flex items-center gap-3">
+                    <Layers size={20} className="text-primary" />
+                    <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted leading-none mb-1">
+                        Learning Series
+                      </h4>
+                      <p className="text-sm font-black tracking-tight text-surface-on">
+                        {post.series_title}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-[10px] font-black text-primary uppercase tracking-widest border border-primary/20">
+                    <BookOpen size={10} /> {post.series_nav.all.length} Topics
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[10px] font-black text-white uppercase tracking-widest border border-white/20">
-                  <BookOpen size={10} /> {post.series_nav.all.length} Topics
-                </div>
-              </div>
 
-              <div className="p-4 sm:p-8 bg-surface">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {post.series_nav.all.map((item: any, idx: number) => (
-                    <Link
-                      key={item.id}
-                      href={`/posts/${item.slug}`}
-                      className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group relative border ${
-                        item.id === post.id
-                          ? "bg-primary/5 border-primary/20 shadow-sm"
-                          : "hover:bg-surface-muted border-transparent hover:border-border"
-                      }`}
-                    >
-                      <span
-                        className={`w-8 h-8 shrink-0 rounded-xl flex items-center justify-center text-[10px] font-black border transition-all ${
+                <div className="p-4 sm:p-6 bg-surface">
+                  <div className="grid grid-cols-1 gap-2">
+                    {post.series_nav.all.map((item: any, idx: number) => (
+                      <Link
+                        key={item.id}
+                        href={`/posts/${item.slug}`}
+                        className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group relative border ${
                           item.id === post.id
-                            ? "bg-primary text-white border-primary rotate-3"
-                            : "bg-surface-muted text-text-faint border-border group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:-rotate-3"
+                            ? "bg-primary/5 border-primary/30"
+                            : "hover:bg-surface-muted border-transparent hover:border-border"
                         }`}
                       >
-                        {idx + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm font-bold truncate ${
+                        <span
+                          className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-[10px] font-black border transition-all ${
                             item.id === post.id
-                              ? "text-primary"
-                              : "text-surface-on"
+                              ? "bg-primary text-white border-primary"
+                              : "bg-surface-muted text-text-faint border-border group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20"
                           }`}
                         >
-                          {item.title}
-                        </p>
-                        {item.id === post.id ? (
-                          <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest">
-                            Currently Reading
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-black text-text-faint uppercase tracking-widest group-hover:text-primary/60 transition-colors">
-                            Jump to Topic
-                          </span>
-                        )}
-                      </div>
-                      {item.id === post.id && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                          <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                          {idx + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm font-bold truncate ${
+                              item.id === post.id
+                                ? "text-primary"
+                                : "text-surface-on"
+                            }`}
+                          >
+                            {item.title}
+                          </p>
                         </div>
-                      )}
-                    </Link>
-                  ))}
-                </div>
+                        {item.id === post.id && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                        )}
+                      </Link>
+                    ))}
+                  </div>
 
-                {/* Quick Prev/Next Container */}
-                <div className="mt-8 pt-8 border-t border-border flex items-center justify-between gap-6">
-                  {post.series_nav.prev ? (
-                    <Link
-                      href={`/posts/${post.series_nav.prev.slug}`}
-                      className="flex-1 group flex items-center gap-4 p-4 rounded-2xl bg-surface-muted border border-border hover:border-primary/30 transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center text-text-faint group-hover:text-primary transition-colors">
-                        <ArrowLeft size={18} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">
-                          Previous Part
-                        </p>
-                        <p className="text-sm font-bold text-surface-on truncate">
-                          {post.series_nav.prev.title}
-                        </p>
-                      </div>
-                    </Link>
-                  ) : (
-                    <div className="flex-1" />
-                  )}
+                  {/* Quick Prev/Next Container */}
+                  <div className="mt-6 pt-6 border-t border-border flex items-center justify-between gap-4">
+                    {post.series_nav.prev ? (
+                      <Link
+                        href={`/posts/${post.series_nav.prev.slug}`}
+                        className="flex-1 group flex items-center gap-3 p-3 rounded-xl bg-surface-muted border border-border hover:border-primary/30 transition-all"
+                      >
+                        <ArrowLeft size={16} className="text-text-faint group-hover:text-primary transition-colors" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">Previous</p>
+                          <p className="text-sm font-bold text-surface-on truncate">{post.series_nav.prev.title}</p>
+                        </div>
+                      </Link>
+                    ) : <div className="flex-1" />}
 
-                  {post.series_nav.next ? (
-                    <Link
-                      href={`/posts/${post.series_nav.next.slug}`}
-                      className="flex-1 group flex items-center gap-4 p-4 rounded-2xl bg-surface-muted border border-border hover:border-primary/30 transition-all text-right"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">
-                          Next Part
-                        </p>
-                        <p className="text-sm font-bold text-surface-on truncate">
-                          {post.series_nav.next.title}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center text-text-faint group-hover:text-primary transition-colors">
-                        <ArrowLeft
-                          size={18}
-                          className="translate-x-0.5 rotate-180"
-                        />
-                      </div>
-                    </Link>
-                  ) : (
-                    <div className="flex-1" />
-                  )}
+                    {post.series_nav.next ? (
+                      <Link
+                        href={`/posts/${post.series_nav.next.slug}`}
+                        className="flex-1 group flex items-center gap-3 p-3 rounded-xl bg-surface-muted border border-border hover:border-primary/30 transition-all text-right"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-black text-text-faint uppercase tracking-wider">Next</p>
+                          <p className="text-sm font-bold text-surface-on truncate">{post.series_nav.next.title}</p>
+                        </div>
+                        <ArrowLeft size={16} className="text-text-faint group-hover:text-primary transition-colors rotate-180" />
+                      </Link>
+                    ) : <div className="flex-1" />}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <article
-            className="article-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+            <article
+              className="article-content"
+              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+            />
+          </div>
         </div>
       </div>
 
       {/* ── Reactions + comments ──────────────────────── */}
       <div className="border-t border-border bg-surface-muted">
-        <div className="container-px py-12 space-y-12">
-          {/* Reactions */}
-          <section>
-            <h3 className="text-xs font-bold text-text-faint uppercase tracking-widest mb-4">
-              Reactions
-            </h3>
-            <Reactions postId={post.id} />
-          </section>
+        <div className="container-px py-16">
+          <div style={{ maxWidth: '820px', width: '100%', marginLeft: 'auto', marginRight: 'auto' }} className="space-y-16">
+            {/* Reactions */}
+            <section>
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                <span className="w-8 h-[1px] bg-primary/30" />
+                Community Reactions
+              </h3>
+              <div className="bg-surface border border-border rounded-3xl p-8 shadow-sm">
+                <Reactions postId={post.id} />
+              </div>
+            </section>
 
-          {/* Divider */}
-          <div className="border-t border-border" />
-
-          {/* Comments */}
-          <CommentSection postId={post.id} />
+            {/* Comments */}
+            <section>
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                <span className="w-8 h-[1px] bg-primary/30" />
+                Discussion
+              </h3>
+              <div className="bg-surface border border-border rounded-3xl p-8 shadow-sm">
+                <CommentSection postId={post.id} />
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
