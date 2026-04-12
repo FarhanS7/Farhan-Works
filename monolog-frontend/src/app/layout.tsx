@@ -33,6 +33,8 @@ const apiOrigin = process.env.NEXT_PUBLIC_API_URL
   ? new URL(process.env.NEXT_PUBLIC_API_URL).origin
   : null;
 
+import { Analytics } from '@vercel/analytics/react';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +56,7 @@ export default function RootLayout({
           <MainContent>{children}</MainContent>
         </div>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
