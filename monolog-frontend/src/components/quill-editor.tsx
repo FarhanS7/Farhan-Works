@@ -1,11 +1,26 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { useEffect, useRef, useState } from 'react';
 
-const ReactQuill = dynamic(() => import('react-quill-new'), {
-  ssr: false,
-  loading: () => <div className="h-[400px] w-full animate-pulse bg-white/5 rounded-2xl" />,
-});
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill-new');
+    const { default: Quill } = await import('quill');
+    const { default: QuillResizeImage } = await import('quill-resize-image');
+
+    // Register the resize module globally (once)
+    if (!Quill.imports['modules/resize']) {
+      Quill.register('modules/resize', QuillResizeImage);
+    }
+
+    return RQ;
+  },
+  {
+    ssr: false,
+    loading: () => <div className="h-[400px] w-full animate-pulse bg-white/5 rounded-2xl" />,
+  }
+);
 
 interface QuillEditorProps {
   value: string;
@@ -23,7 +38,10 @@ export default function QuillEditor({ value, onChange, placeholder }: QuillEdito
       ['clean'],
     ],
     clipboard: {
-      matchVisual: false, // Prevents extra line breaks when pasting
+      matchVisual: false,
+    },
+    resize: {
+      locale: {},
     },
   };
 
@@ -32,6 +50,7 @@ export default function QuillEditor({ value, onChange, placeholder }: QuillEdito
     'bold', 'italic', 'underline', 'strike',
     'list', 'bullet',
     'link', 'blockquote', 'code-block', 'image',
+    'width', 'height', 'style',
   ];
 
   return (

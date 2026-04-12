@@ -36,7 +36,8 @@ app.use(
   }),
 );
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-app.use(express.json({ limit: "256kb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // ── Rate limiters ─────────────────────────────────────────────────────────────
 

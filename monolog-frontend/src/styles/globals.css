@@ -58,6 +58,17 @@
   color: var(--tp) !important;
 }
 
+/* Quill Image Resize Handles */
+.quill-editor-wrapper .ql-editor img {
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.ql-editor img.active {
+  outline: 2px solid var(--orange) !important;
+  outline-offset: 2px;
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    INNERAKTIVE — Theme Tokens
