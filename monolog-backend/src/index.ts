@@ -29,8 +29,21 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) callback(null, true);
-      else callback(new Error("Not allowed by CORS"));
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      // Allow specific pre-configured origins
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      
+      // Dynamically allow any localhost port or *.vercel.app preview branches
+      if (
+        origin.startsWith("http://localhost:") ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+      
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   }),
